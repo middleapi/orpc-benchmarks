@@ -1,35 +1,14 @@
 {
-  "name": "@unnoq/package-example",
+  "name": "orpc-typecheck",
   "type": "module",
   "version": "0.0.0",
   "license": "MIT",
-  "homepage": "https://unnoq.com",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/unnoq/unnoq.git",
-    "directory": "packages/example"
-  },
-  "keywords": [
-    "unnoq"
-  ],
-  "publishConfig": {
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.mts",
-        "import": "./dist/index.mjs",
-        "default": "./dist/index.mjs"
-      }
-    }
-  },
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "unbuild",
-    "build:watch": "pnpm run build --watch",
-    "type:check": "tsc -b"
+    "gen": "tsx scripts/gen.ts",
+    "bench": "pnpm run gen && hyperfine 'tsc --noEmit'"
+  },
+  "dependencies": {
+    "@orpc/client": "1.0.0-beta.2",
+    "@orpc/server": "1.0.0-beta.2"
   }
 }
