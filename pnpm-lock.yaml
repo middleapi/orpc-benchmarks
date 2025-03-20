@@ -60,12 +60,6 @@ importers:
 
   benchmarks/trpc-typecheck:
     dependencies:
-      '@orpc/client':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2
-      '@orpc/server':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
       '@standard-schema/spec':
         specifier: ^1.0.0
         version: 1.0.0
