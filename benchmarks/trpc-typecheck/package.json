@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "gen": "tsx scripts/gen.ts",
-    "bench": "pnpm run gen && hyperfine 'tsc --noEmit'"
+    "bench": "tsx scripts/gen.ts && hyperfine 'tsc --noEmit'"
   },
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",

@@ -5,21 +5,7 @@
   "private": true,
   "packageManager": "pnpm@10.6.5",
   "scripts": {
-    "prepare": "simple-git-hooks",
-    "build": "pnpm run -r build",
-    "build:packages": "pnpm --filter='./packages/*' run -r build",
-    "preview": "pnpm run --parallel preview",
-    "type:check": "pnpm run -r type:check",
-    "posttype:check": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest watch --passWithNoTests",
-    "test:coverage": "pnpm run test --coverage",
-    "lint": "eslint --max-warnings=0 .",
-    "lint:fix": "pnpm run lint --fix",
-    "sherif": "pnpm dlx sherif",
-    "sherif:fix": "pnpm run sherif --fix",
-    "knip": "pnpm dlx knip --production",
-    "knip:fix": "pnpm run knip --fix --allow-remove-files"
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "@orpc/client": "1.0.0-beta.2",
@@ -28,15 +14,12 @@
   "devDependencies": {
     "@antfu/eslint-config": "^4.10.1",
     "@types/node": "^22.13.10",
-    "@vitest/coverage-v8": "^3.0.9",
     "eslint": "^9.22.0",
     "eslint-plugin-format": "^1.0.1",
     "lint-staged": "^15.5.0",
     "simple-git-hooks": "^2.11.1",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2",
-    "unbuild": "^3.5.0",
-    "vitest": "^3.0.9"
+    "typescript": "^5.8.2"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"
