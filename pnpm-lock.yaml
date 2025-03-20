@@ -58,6 +58,24 @@ importers:
         specifier: 1.0.0-beta.2
         version: 1.0.0-beta.2(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
 
+  benchmarks/trpc-typecheck:
+    dependencies:
+      '@orpc/client':
+        specifier: 1.0.0-beta.2
+        version: 1.0.0-beta.2
+      '@orpc/server':
+        specifier: 1.0.0-beta.2
+        version: 1.0.0-beta.2(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.0.0
+      '@trpc/client':
+        specifier: 11.0.0-rc.840
+        version: 11.0.0-rc.840(@trpc/server@11.0.0-rc.840(typescript@5.8.2))(typescript@5.8.2)
+      '@trpc/server':
+        specifier: 11.0.0-rc.840
+        version: 11.0.0-rc.840(typescript@5.8.2)
+
 packages:
 
   '@ampproject/remapping@2.3.0':
@@ -947,6 +965,17 @@ packages:
   '@tinyhttp/content-disposition@2.2.2':
     resolution: {integrity: sha512-crXw1txzrS36huQOyQGYFvhTeLeG0Si1xu+/l6kXUVYpE0TjFjEZRqTbuadQLfKGZ0jaI+jJoRyqaWwxOSHW2g==}
     engines: {node: '>=12.20.0'}
+
+  '@trpc/client@11.0.0-rc.840':
+    resolution: {integrity: sha512-7i+1ZuwXrfjxrR02uJn01BtWx0k9lAXc7qqrYxI8EHzMvQF+Et7EzlYaqh2logKtclb7BpBYNOJqOEv+Nevz4A==}
+    peerDependencies:
+      '@trpc/server': 11.0.0-rc.840+b6c6ddb3e
+      typescript: '>=5.7.2'
+
+  '@trpc/server@11.0.0-rc.840':
+    resolution: {integrity: sha512-bk079wyaGk76w8bpAoiFrcNNEBbV5U0zoq7v4EIsslhB7EIJwd4Vyn52GtdZEpJOFuCCORxgGZxmn8slIo9tvg==}
+    peerDependencies:
+      typescript: '>=5.7.2'
 
   '@trysound/sax@0.2.0':
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
@@ -3785,6 +3814,15 @@ snapshots:
       tslib: 2.8.1
 
   '@tinyhttp/content-disposition@2.2.2': {}
+
+  '@trpc/client@11.0.0-rc.840(@trpc/server@11.0.0-rc.840(typescript@5.8.2))(typescript@5.8.2)':
+    dependencies:
+      '@trpc/server': 11.0.0-rc.840(typescript@5.8.2)
+      typescript: 5.8.2
+
+  '@trpc/server@11.0.0-rc.840(typescript@5.8.2)':
+    dependencies:
+      typescript: 5.8.2
 
   '@trysound/sax@0.2.0': {}
 

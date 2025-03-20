@@ -1,0 +1,17 @@
+{
+  "name": "trpc-typecheck",
+  "type": "module",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "gen": "tsx scripts/gen.ts",
+    "bench": "pnpm run gen && hyperfine 'tsc --noEmit'"
+  },
+  "dependencies": {
+    "@orpc/client": "1.0.0-beta.2",
+    "@orpc/server": "1.0.0-beta.2",
+    "@standard-schema/spec": "^1.0.0",
+    "@trpc/client": "11.0.0-rc.840",
+    "@trpc/server": "11.0.0-rc.840"
+  }
+}
