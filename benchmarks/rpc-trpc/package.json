@@ -1,0 +1,19 @@
+{
+  "name": "typecheck-orpc",
+  "type": "module",
+  "version": "0.0.0",
+  "license": "MIT",
+  "main": "dist/main.mjs",
+  "scripts": {
+    "preview": "unbuild && node dist/main.mjs",
+    "bench": "unbuild && clinic doctor --stop-delay 5000 --on-port 'autocannon -d 20 http://127.0.0.1:$PORT/nested.procedure_1?input=%7B%22json%22%3A%22hello%20world%22%2C%22meta%22%3A%5B%5D%7D' -- node dist/main.mjs"
+  },
+  "dependencies": {
+    "@trpc/client": "11.0.0-rc.840",
+    "@trpc/server": "11.0.0-rc.840",
+    "superjson": "^2.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10"
+  }
+}
