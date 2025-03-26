@@ -7,13 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@orpc/client':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2
-      '@orpc/server':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^4.10.1
@@ -46,11 +39,11 @@ importers:
   benchmarks/rpc-orpc:
     dependencies:
       '@orpc/client':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2
+        specifier: 1.0.0-beta.4
+        version: 1.0.0-beta.4
       '@orpc/server':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
+        specifier: 1.0.0-beta.4
+        version: 1.0.0-beta.4(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
     devDependencies:
       '@types/node':
         specifier: ^22.13.10
@@ -59,11 +52,11 @@ importers:
   benchmarks/rpc-trpc:
     dependencies:
       '@trpc/client':
-        specifier: 11.0.0-rc.840
-        version: 11.0.0-rc.840(@trpc/server@11.0.0-rc.840(typescript@5.8.2))(typescript@5.8.2)
+        specifier: 11.0.0
+        version: 11.0.0(@trpc/server@11.0.0(typescript@5.8.2))(typescript@5.8.2)
       '@trpc/server':
-        specifier: 11.0.0-rc.840
-        version: 11.0.0-rc.840(typescript@5.8.2)
+        specifier: 11.0.0
+        version: 11.0.0(typescript@5.8.2)
       superjson:
         specifier: ^2.2.2
         version: 2.2.2
@@ -75,11 +68,11 @@ importers:
   benchmarks/typecheck-orpc:
     dependencies:
       '@orpc/client':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2
+        specifier: 1.0.0-beta.4
+        version: 1.0.0-beta.4
       '@orpc/server':
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
+        specifier: 1.0.0-beta.4
+        version: 1.0.0-beta.4(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
 
   benchmarks/typecheck-trpc:
     dependencies:
@@ -87,11 +80,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       '@trpc/client':
-        specifier: 11.0.0-rc.840
-        version: 11.0.0-rc.840(@trpc/server@11.0.0-rc.840(typescript@5.8.2))(typescript@5.8.2)
+        specifier: 11.0.0
+        version: 11.0.0(@trpc/server@11.0.0(typescript@5.8.2))(typescript@5.8.2)
       '@trpc/server':
-        specifier: 11.0.0-rc.840
-        version: 11.0.0-rc.840(typescript@5.8.2)
+        specifier: 11.0.0
+        version: 11.0.0(typescript@5.8.2)
 
 packages:
 
@@ -752,29 +745,29 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@orpc/client@1.0.0-beta.2':
-    resolution: {integrity: sha512-0FsmQEQQfAfCPzI6dsldCUxb7dSBZ4JAf/ffMj0ZLKAP1JM+6j3KPutL4zeSmvuA0C1bpZyrfKgtZFBz3Zmxfg==}
+  '@orpc/client@1.0.0-beta.4':
+    resolution: {integrity: sha512-vRbw28tfnvd8c7NrrVaR1AKZoMpj5YkG3wbqozN+LKtlh8eSITMKy9OBXM3s/Lb1iktvPJ0iOr+5fcg6RbGHNw==}
 
-  '@orpc/contract@1.0.0-beta.2':
-    resolution: {integrity: sha512-M/MQmFtPrPvTiogrqcNHwxRZNlWU6Zz4yL+v3vl+pgOhpLTkppot4/QeIE4afyB4F3c8ONudKAvOHqTCE04Ihg==}
+  '@orpc/contract@1.0.0-beta.4':
+    resolution: {integrity: sha512-8sHN+5vuqB9myVnNfwkqWcxM41Z/8KyDR6gRzbFqK+Y5GklPEtC+UKxsSq7A9I6+6wSLzHmr7yBxnW6WSMNqCA==}
 
-  '@orpc/server@1.0.0-beta.2':
-    resolution: {integrity: sha512-oh+gMqah0HKYhOCFKKvW/dCedPFbdI5jVT22Mlk4gzCqK56tL6IT4+lkXGISA24vyyR/k8aWl8A9ejTWyuS6ZA==}
+  '@orpc/server@1.0.0-beta.4':
+    resolution: {integrity: sha512-kDMouLeErir1LPvtnRWuVhnoY7+xwUwnyqU2NMvKp379LuMx9KdDDdNeZMN3UYgJ9KH/NnAczlTt7pYVdSWd7w==}
     peerDependencies:
       hono: '>=4.6.0'
       next: '>=14.0.0'
 
-  '@orpc/shared@1.0.0-beta.2':
-    resolution: {integrity: sha512-/AvonHv9nqfYlYwY58jHKIlJuZMjXWhOslhv87CaxczMgdOUByjW/hpI2dNCnZ8OVBVeY9jIH2ecCcNaDAyUgg==}
+  '@orpc/shared@1.0.0-beta.4':
+    resolution: {integrity: sha512-Mv3oaDuaFIlmCey8LXf1YsxYY8Ykg2x6Y9KUWhbAPTZ9sF04zt3U2b7LQFReZ/UE+mI3Vo5PEZbJEMXU5yc0UQ==}
 
-  '@orpc/standard-server-fetch@1.0.0-beta.2':
-    resolution: {integrity: sha512-4U3i5yqmkkZprKrDWQQXAHBekcBKYu+keFa67CmkvDxV2PCCd5DLUp2Ui23zbS0JBV5gS39hQZkWUbMQeqt71A==}
+  '@orpc/standard-server-fetch@1.0.0-beta.4':
+    resolution: {integrity: sha512-o5+QLa8mpn4eNW6aq/VkBXamBQCYDPwSW0Cp6a05P7cBTmUC0DzzJkpOAKDNB+r8v+MuY8y9QRKx39tIPvUEgA==}
 
-  '@orpc/standard-server-node@1.0.0-beta.2':
-    resolution: {integrity: sha512-8adFXFNVczo2bpFOzo2B/WJOnTjx7HodtA5IhmOVf91POIhl1x6sstkXy2X78ZAJVRnNWGpQ8dsy+CieC1hqZQ==}
+  '@orpc/standard-server-node@1.0.0-beta.4':
+    resolution: {integrity: sha512-nMPrOlW08pb16LVAWwDtGTQ3Aj+x7yTk/fRklK78gFlJCisUvmzswqqjv/J+RNpmkP+LwrPCQQNXJroQ4oHP5g==}
 
-  '@orpc/standard-server@1.0.0-beta.2':
-    resolution: {integrity: sha512-xDnk/zeXquyownHbLYXTFuIjRj1nG8Rtdq3tkxRQQvqzqbMqD4fehmw2y1rTL79pkOVoEINiVhHXCIBVXs9ZKQ==}
+  '@orpc/standard-server@1.0.0-beta.4':
+    resolution: {integrity: sha512-Pfs5Pb47WMEO9rA6+3V1wUeFdHHCT/J/N6g65FbHk9OHjcB9CYwzehwiti1NlJtEaaEVgmBi/d4r1NXU/kfWmg==}
 
   '@pkgr/core@0.1.1':
     resolution: {integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==}
@@ -948,14 +941,14 @@ packages:
     resolution: {integrity: sha512-crXw1txzrS36huQOyQGYFvhTeLeG0Si1xu+/l6kXUVYpE0TjFjEZRqTbuadQLfKGZ0jaI+jJoRyqaWwxOSHW2g==}
     engines: {node: '>=12.20.0'}
 
-  '@trpc/client@11.0.0-rc.840':
-    resolution: {integrity: sha512-7i+1ZuwXrfjxrR02uJn01BtWx0k9lAXc7qqrYxI8EHzMvQF+Et7EzlYaqh2logKtclb7BpBYNOJqOEv+Nevz4A==}
+  '@trpc/client@11.0.0':
+    resolution: {integrity: sha512-U2THlxsdr4ykAX5lpTU8k5WRADPQ+68Ex2gfUht3MlCxGK7njBmNSSzjpQSWNt7tMI/xsYrddFiRlmEPrh+Cbg==}
     peerDependencies:
-      '@trpc/server': 11.0.0-rc.840+b6c6ddb3e
+      '@trpc/server': 11.0.0
       typescript: '>=5.7.2'
 
-  '@trpc/server@11.0.0-rc.840':
-    resolution: {integrity: sha512-bk079wyaGk76w8bpAoiFrcNNEBbV5U0zoq7v4EIsslhB7EIJwd4Vyn52GtdZEpJOFuCCORxgGZxmn8slIo9tvg==}
+  '@trpc/server@11.0.0':
+    resolution: {integrity: sha512-xY9q/b/wR/tWGYTm5xmRjivkYD2EZZXmOKmHuNJRYZuLbieeNUsdfQRjJC409WB1pjKWInomhHwuA8bahZJ4lQ==}
     peerDependencies:
       typescript: '>=5.7.2'
 
@@ -3503,48 +3496,48 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@orpc/client@1.0.0-beta.2':
+  '@orpc/client@1.0.0-beta.4':
     dependencies:
-      '@orpc/shared': 1.0.0-beta.2
-      '@orpc/standard-server': 1.0.0-beta.2
-      '@orpc/standard-server-fetch': 1.0.0-beta.2
+      '@orpc/shared': 1.0.0-beta.4
+      '@orpc/standard-server': 1.0.0-beta.4
+      '@orpc/standard-server-fetch': 1.0.0-beta.4
 
-  '@orpc/contract@1.0.0-beta.2':
+  '@orpc/contract@1.0.0-beta.4':
     dependencies:
-      '@orpc/client': 1.0.0-beta.2
-      '@orpc/shared': 1.0.0-beta.2
-      '@orpc/standard-server': 1.0.0-beta.2
+      '@orpc/client': 1.0.0-beta.4
+      '@orpc/shared': 1.0.0-beta.4
+      '@orpc/standard-server': 1.0.0-beta.4
       '@standard-schema/spec': 1.0.0
 
-  '@orpc/server@1.0.0-beta.2(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))':
+  '@orpc/server@1.0.0-beta.4(hono@4.7.2)(next@15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))':
     dependencies:
-      '@orpc/client': 1.0.0-beta.2
-      '@orpc/contract': 1.0.0-beta.2
-      '@orpc/shared': 1.0.0-beta.2
-      '@orpc/standard-server': 1.0.0-beta.2
-      '@orpc/standard-server-fetch': 1.0.0-beta.2
-      '@orpc/standard-server-node': 1.0.0-beta.2
+      '@orpc/client': 1.0.0-beta.4
+      '@orpc/contract': 1.0.0-beta.4
+      '@orpc/shared': 1.0.0-beta.4
+      '@orpc/standard-server': 1.0.0-beta.4
+      '@orpc/standard-server-fetch': 1.0.0-beta.4
+      '@orpc/standard-server-node': 1.0.0-beta.4
       hono: 4.7.2
       next: 15.2.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
 
-  '@orpc/shared@1.0.0-beta.2':
+  '@orpc/shared@1.0.0-beta.4':
     dependencies:
       radash: 12.1.0
       type-fest: 4.37.0
 
-  '@orpc/standard-server-fetch@1.0.0-beta.2':
+  '@orpc/standard-server-fetch@1.0.0-beta.4':
     dependencies:
-      '@orpc/shared': 1.0.0-beta.2
-      '@orpc/standard-server': 1.0.0-beta.2
+      '@orpc/shared': 1.0.0-beta.4
+      '@orpc/standard-server': 1.0.0-beta.4
 
-  '@orpc/standard-server-node@1.0.0-beta.2':
+  '@orpc/standard-server-node@1.0.0-beta.4':
     dependencies:
-      '@orpc/shared': 1.0.0-beta.2
-      '@orpc/standard-server': 1.0.0-beta.2
+      '@orpc/shared': 1.0.0-beta.4
+      '@orpc/standard-server': 1.0.0-beta.4
 
-  '@orpc/standard-server@1.0.0-beta.2':
+  '@orpc/standard-server@1.0.0-beta.4':
     dependencies:
-      '@orpc/shared': 1.0.0-beta.2
+      '@orpc/shared': 1.0.0-beta.4
       '@tinyhttp/content-disposition': 2.2.2
 
   '@pkgr/core@0.1.1': {}
@@ -3675,12 +3668,12 @@ snapshots:
 
   '@tinyhttp/content-disposition@2.2.2': {}
 
-  '@trpc/client@11.0.0-rc.840(@trpc/server@11.0.0-rc.840(typescript@5.8.2))(typescript@5.8.2)':
+  '@trpc/client@11.0.0(@trpc/server@11.0.0(typescript@5.8.2))(typescript@5.8.2)':
     dependencies:
-      '@trpc/server': 11.0.0-rc.840(typescript@5.8.2)
+      '@trpc/server': 11.0.0(typescript@5.8.2)
       typescript: 5.8.2
 
-  '@trpc/server@11.0.0-rc.840(typescript@5.8.2)':
+  '@trpc/server@11.0.0(typescript@5.8.2)':
     dependencies:
       typescript: 5.8.2
 

@@ -7,7 +7,7 @@
     "bench": "tsx scripts/gen.ts && hyperfine 'tsc --noEmit'"
   },
   "dependencies": {
-    "@orpc/client": "1.0.0-beta.2",
-    "@orpc/server": "1.0.0-beta.2"
+    "@orpc/client": "1.0.0-beta.4",
+    "@orpc/server": "1.0.0-beta.4"
   }
 }
