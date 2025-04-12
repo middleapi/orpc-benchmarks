@@ -82,3 +82,26 @@ Binaries:
   Yarn: N/A
   pnpm: 10.6.5
 ```
+
+### oRPC 0.0.0-next.66d4d3b - 2025-04-12T03:41:10.162Z
+
+```bash
+Time (mean ± σ):      5.937 s ±  0.079 s    [User: 11.446 s, System: 0.373 s]
+Range (min … max):    5.839 s …  6.099 s    10 runs
+```
+
+Environment:
+
+```bash
+Operating System:
+  Platform: linux
+  Arch: x64
+  Version: #19~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC
+  Available memory (MB): 7755
+  Available CPU cores: 8
+Binaries:
+  Node: 22.12.0
+  npm: 10.9.0
+  Yarn: N/A
+  pnpm: 10.6.5
+```

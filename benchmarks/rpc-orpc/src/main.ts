@@ -23,7 +23,9 @@ const router = {
   },
 }
 
-const handler = new RPCHandler(router)
+const handler = new RPCHandler(router, {
+  strictGetMethodPluginEnabled: false,
+})
 
 const server = createServer(async (req, res) => {
   const { matched } = await handler.handle(req, res)

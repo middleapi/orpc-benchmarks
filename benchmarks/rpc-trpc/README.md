@@ -117,3 +117,55 @@ Binaries:
   Yarn: N/A
   pnpm: 10.6.5
 ```
+
+### tRPC 11.1.0 - 2025-04-12T03:41:10.162Z
+
+```bash
+Listening on http://127.0.0.1:3000/nested.procedure_1?input=%7B%22json%22%3A%22hello%20world%22%2C%22meta%22%3A%5B%5D%7D
+Running 20s test @ http://127.0.0.1:3000/nested.procedure_1?input=%7B%22json%22%3A%22hello%20world%22%2C%22meta%22%3A%5B%5D%7D
+10 connections
+
+┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
+│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
+├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
+│ Latency │ 1 ms │ 1 ms │ 4 ms  │ 5 ms │ 1.38 ms │ 0.97 ms │ 44 ms │
+└─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
+┌───────────┬────────┬────────┬────────┬─────────┬──────────┬────────┬────────┐
+│ Stat      │ 1%     │ 2.5%   │ 50%    │ 97.5%   │ Avg      │ Stdev  │ Min    │
+├───────────┼────────┼────────┼────────┼─────────┼──────────┼────────┼────────┤
+│ Req/Sec   │ 2,153  │ 2,153  │ 5,527  │ 5,811   │ 5,221.11 │ 885.42 │ 2,153  │
+├───────────┼────────┼────────┼────────┼─────────┼──────────┼────────┼────────┤
+│ Bytes/Sec │ 739 kB │ 739 kB │ 1.9 MB │ 1.99 MB │ 1.79 MB  │ 304 kB │ 738 kB │
+└───────────┴────────┴────────┴────────┴─────────┴──────────┴────────┴────────┘
+
+Req/Bytes counts sampled once per second.
+# of samples: 20
+
+104k requests in 20.01s, 35.8 MB read
+```
+
+**Clinic Doctor Report**:
+
+Summary:
+Note: The following summary is manually created and may not be fully accurate.
+
+- CPU Usage: 100% - 129%
+- Memory Usage: 182MB - 268MB
+
+[Detail report here](./public/2025-04-12T03:41:10.162Z.clinic-doctor.html)
+
+**Environment**:
+
+```bash
+Operating System:
+  Platform: linux
+  Arch: x64
+  Version: #19~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC
+  Available memory (MB): 7755
+  Available CPU cores: 8
+Binaries:
+  Node: 22.12.0
+  npm: 10.9.0
+  Yarn: N/A
+  pnpm: 10.6.5
+```

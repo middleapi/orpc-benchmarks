@@ -82,3 +82,26 @@ Binaries:
   Yarn: N/A
   pnpm: 10.6.5
 ```
+
+### tRPC 11.1.0 - 2025-04-12T03:41:10.162Z
+
+```bash
+Time (mean ± σ):      9.339 s ±  0.283 s    [User: 14.906 s, System: 0.413 s]
+Range (min … max):    9.057 s … 10.025 s    10 runs
+```
+
+Environment:
+
+```bash
+Operating System:
+  Platform: linux
+  Arch: x64
+  Version: #19~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC
+  Available memory (MB): 7755
+  Available CPU cores: 8
+Binaries:
+  Node: 22.12.0
+  npm: 10.9.0
+  Yarn: N/A
+  pnpm: 10.6.5
+```
