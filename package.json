@@ -9,7 +9,6 @@
     "repo:fix": "sherif --fix"
   },
   "devDependencies": {
-    "0x": "^6.0.0",
     "@hono/node-server": "^2.0.12",
     "@orpc/client": "2.0.0-beta.22",
     "@orpc/openapi": "2.0.0-beta.22",
@@ -19,6 +18,7 @@
     "@types/node": "^26.1.2",
     "@types/ws": "^8.18.1",
     "autocannon": "^8.0.0",
+    "clinic": "^13.0.0",
     "hono": "^4.12.32",
     "oxfmt": "^0.61.0",
     "sherif": "^1.13.0",

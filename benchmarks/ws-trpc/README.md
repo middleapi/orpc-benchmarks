@@ -16,7 +16,7 @@ Since [autocannon](https://github.com/mcollina/autocannon) only supports HTTP, t
 
 Benchmarks in the `ws` group are comparable to each other: [ws-orpc](../ws-orpc), [ws-trpc](../ws-trpc).
 
-Each run profiles the server with [0x](https://github.com/davidmarkclements/0x) and overwrites the flamegraph at [public/flamegraph.html](./public/flamegraph.html).
+Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [public/clinic-doctor.html](./public/clinic-doctor.html).
 
 ## Benchmark Results
 
@@ -26,13 +26,13 @@ Each run profiles the server with [0x](https://github.com/davidmarkclements/0x) 
 Running 20s WebSocket test @ ws://127.0.0.1:3000
 10 connections
 
-Latency: avg=1.82 ms stdev=0.99 ms p50=1.99 ms p97.5=2.80 ms p99=3.62 ms max=57.96 ms
-Req/Sec: avg=5,486 stdev=196 min=4,969 max=5,779
+Latency: avg=1.94 ms stdev=0.68 ms p50=1.99 ms p97.5=2.92 ms p99=3.30 ms max=49.90 ms
+Req/Sec: avg=5,152 stdev=168 min=4,813 max=5,502
 
-109,719 requests in 20.00s
+103,042 requests in 20.00s
 ```
 
-**Flamegraph**: [public/flamegraph.html](./public/flamegraph.html)
+**Clinic Doctor Report**: [public/clinic-doctor.html](./public/clinic-doctor.html)
 
 **Environment**:
 

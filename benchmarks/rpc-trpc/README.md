@@ -14,7 +14,7 @@ We use [Standard Schema](https://github.com/standard-schema/standard-schema) ins
 
 Benchmarks in the `rpc` group are comparable to each other: [rpc-orpc](../rpc-orpc), [rpc-trpc](../rpc-trpc).
 
-Each run profiles the server with [0x](https://github.com/davidmarkclements/0x) and overwrites the flamegraph at [public/flamegraph.html](./public/flamegraph.html).
+Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [public/clinic-doctor.html](./public/clinic-doctor.html).
 
 ## Benchmark Results
 
@@ -24,26 +24,26 @@ Each run profiles the server with [0x](https://github.com/davidmarkclements/0x) 
 Running 20s test @ http://127.0.0.1:3000/nested.procedure_1?input=%7B%22json%22%3A%22hello%20world%22%2C%22meta%22%3A%5B%5D%7D
 10 connections
 
-┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬────────┐
-│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max    │
-├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼────────┤
-│ Latency │ 1 ms │ 2 ms │ 6 ms  │ 8 ms │ 2.19 ms │ 2.17 ms │ 153 ms │
-└─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴────────┘
-┌───────────┬────────┬────────┬─────────┬─────────┬──────────┬────────┬────────┐
-│ Stat      │ 1%     │ 2.5%   │ 50%     │ 97.5%   │ Avg      │ Stdev  │ Min    │
-├───────────┼────────┼────────┼─────────┼─────────┼──────────┼────────┼────────┤
-│ Req/Sec   │ 2,025  │ 2,025  │ 3,995   │ 4,435   │ 3,729.55 │ 646.58 │ 2,025  │
-├───────────┼────────┼────────┼─────────┼─────────┼──────────┼────────┼────────┤
-│ Bytes/Sec │ 723 kB │ 723 kB │ 1.43 MB │ 1.58 MB │ 1.33 MB  │ 231 kB │ 723 kB │
-└───────────┴────────┴────────┴─────────┴─────────┴──────────┴────────┴────────┘
+┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
+│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
+├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
+│ Latency │ 1 ms │ 2 ms │ 7 ms  │ 9 ms │ 2.66 ms │ 1.83 ms │ 81 ms │
+└─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
+┌───────────┬────────┬────────┬─────────┬─────────┬─────────┬────────┬────────┐
+│ Stat      │ 1%     │ 2.5%   │ 50%     │ 97.5%   │ Avg     │ Stdev  │ Min    │
+├───────────┼────────┼────────┼─────────┼─────────┼─────────┼────────┼────────┤
+│ Req/Sec   │ 1,423  │ 1,423  │ 3,067   │ 3,995   │ 3,155.5 │ 643.2  │ 1,423  │
+├───────────┼────────┼────────┼─────────┼─────────┼─────────┼────────┼────────┤
+│ Bytes/Sec │ 508 kB │ 508 kB │ 1.09 MB │ 1.43 MB │ 1.13 MB │ 230 kB │ 508 kB │
+└───────────┴────────┴────────┴─────────┴─────────┴─────────┴────────┴────────┘
 
 Req/Bytes counts sampled once per second.
 # of samples: 20
 
-75k requests in 20.01s, 26.6 MB read
+63k requests in 20.01s, 22.5 MB read
 ```
 
-**Flamegraph**: [public/flamegraph.html](./public/flamegraph.html)
+**Clinic Doctor Report**: [public/clinic-doctor.html](./public/clinic-doctor.html)
 
 **Environment**:
 
