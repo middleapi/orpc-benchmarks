@@ -1,8 +1,8 @@
 {
   "name": "rpc-orpc",
-  "type": "module",
   "version": "0.0.0",
   "license": "MIT",
+  "type": "module",
   "main": "dist/main.mjs",
   "scripts": {
     "bench": "tsdown src/main.ts && clinic doctor --stop-delay 5000 --on-port 'autocannon -d 20 http://127.0.0.1:$PORT/nested/procedure_1?data=%7B%22json%22%3A%22hello%20world%22%2C%22meta%22%3A%5B%5D%7D' -- node dist/main.mjs"
