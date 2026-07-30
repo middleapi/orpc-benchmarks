@@ -1,109 +1,42 @@
 # oRPC Type-Check Benchmark
 
-Run the benchmark with:
+- Evaluates TypeScript type-checking performance on a project with **3,000 procedures** and **1,501 routers**.
+- Uses [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod so the results reflect oRPC's performance without external influences.
+- Comparable to the other benchmarks in the `typecheck` group: [typecheck-orpc](../typecheck-orpc), [typecheck-trpc](../typecheck-trpc).
+
+## How to run
 
 ```bash
 pnpm bench
 ```
 
-## Overview
+## Latest Result
 
-This benchmark evaluates TypeScript type-checking performance on a project with 3,000 procedures and 1,501 routers.
-
-We use [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod to ensure the results reflect oRPC's performance without external influences.
-
-Benchmarks in the `typecheck` group are comparable to each other: [typecheck-orpc](../typecheck-orpc), [typecheck-trpc](../typecheck-trpc).
-
-## Benchmark Results
-
-### oRPC 1.0.0-beta.2 - 2025-03-20T10:18:33.021Z
+oRPC 2.0.0-beta.22, TypeScript 7.0.2 - 2026-07-30
 
 ```bash
-Time (mean ± σ):      6.384 s ±  0.168 s    [User: 12.308 s, System: 0.393 s]
-Range (min … max):    6.161 s …  6.608 s    10 runs
+Files:             1316
+Lines:            45799
+Identifiers:      86210
+Symbols:         774604
+Types:           475174
+Instantiations: 2470735
+Memory used:    486687K
+Memory allocs:  5341092
+Config time:     0.005s
+Parse time:      0.099s
+Bind time:       0.029s
+Check time:      2.103s
+Emit time:       0.002s
+Total time:      2.240s
 ```
 
-Environment:
+Run on:
 
 ```bash
-Operating System:
-  Platform: linux
-  Arch: x64
-  Version: #19~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC
-  Available memory (MB): 7755
-  Available CPU cores: 8
-Binaries:
-  Node: 22.12.0
-  npm: 10.9.0
-  Yarn: N/A
-  pnpm: 10.6.5
-```
-
-### oRPC 1.0.0-beta.2 - 2025-03-20T10:19:57.563Z
-
-```bash
-Time (mean ± σ):      6.526 s ±  0.129 s    [User: 12.663 s, System: 0.405 s]
-Range (min … max):    6.377 s …  6.854 s    10 runs
-```
-
-Environment:
-
-```bash
-Operating System:
-  Platform: linux
-  Arch: x64
-  Version: #19~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC
-  Available memory (MB): 7755
-  Available CPU cores: 8
-Binaries:
-  Node: 22.12.0
-  npm: 10.9.0
-  Yarn: N/A
-  pnpm: 10.6.5
-```
-
-### oRPC 1.0.0-beta.4 - 2025-03-26T01:32:32.749Z
-
-```bash
-Time (mean ± σ):      6.001 s ±  0.119 s    [User: 11.656 s, System: 0.396 s]
-Range (min … max):    5.817 s …  6.199 s    10 runs
-```
-
-Environment:
-
-```bash
-Operating System:
-  Platform: linux
-  Arch: x64
-  Version: #19~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC
-  Available memory (MB): 7755
-  Available CPU cores: 8
-Binaries:
-  Node: 22.12.0
-  npm: 10.9.0
-  Yarn: N/A
-  pnpm: 10.6.5
-```
-
-### oRPC 0.0.0-next.66d4d3b - 2025-04-12T03:41:10.162Z
-
-```bash
-Time (mean ± σ):      5.937 s ±  0.079 s    [User: 11.446 s, System: 0.373 s]
-Range (min … max):    5.839 s …  6.099 s    10 runs
-```
-
-Environment:
-
-```bash
-Operating System:
-  Platform: linux
-  Arch: x64
-  Version: #19~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC
-  Available memory (MB): 7755
-  Available CPU cores: 8
-Binaries:
-  Node: 22.12.0
-  npm: 10.9.0
-  Yarn: N/A
-  pnpm: 10.6.5
+CPU: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz (8 cores)
+Memory: 7237 MB
+OS: Linux 7.0.0-28-generic x64
+Node: 24.18.1
+pnpm: 11.17.0
 ```

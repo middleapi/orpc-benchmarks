@@ -1,24 +1,19 @@
 # Hono OpenAPI Runtime Benchmark
 
-Run the benchmark with:
+- Evaluates the performance of Hono's runtime on a project with **6 routes** matching the procedures in [openapi-orpc](../openapi-orpc); every route is exposed as a RESTful `GET` endpoint that reads its input from query parameters.
+- Each route uses a pass-through `hono/validator`, mirroring the no-op Standard Schema used in the oRPC benchmark, so the results reflect Hono's performance without external influences.
+- Comparable to the other benchmarks in the `openapi` group: [openapi-orpc](../openapi-orpc), [openapi-hono](../openapi-hono).
+- Every run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the committed report at [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html).
+
+## How to run
 
 ```bash
 pnpm bench
 ```
 
-## Overview
+## Latest Result
 
-This benchmark evaluates the performance of Hono's runtime on a project with **6 routes** matching the procedures in [openapi-orpc](../openapi-orpc). Every route is exposed as a RESTful `GET` endpoint that reads its input from query parameters.
-
-Each route uses a pass-through `hono/validator`, mirroring the no-op Standard Schema used in the oRPC benchmark, so the results reflect Hono's performance without external influences.
-
-Benchmarks in the `openapi` group are comparable to each other: [openapi-orpc](../openapi-orpc), [openapi-hono](../openapi-hono).
-
-Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html).
-
-## Benchmark Results
-
-### Hono 4.12.32 - 2026-07-30
+Hono 4.12.32 - 2026-07-30
 
 ```bash
 Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
@@ -43,18 +38,19 @@ Req/Bytes counts sampled once per second.
 248k requests in 20.01s, 61.5 MB read
 ```
 
-**Clinic Doctor Report**: [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html)
+Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
 
-**Environment**:
+- CPU usage: ~104% on average (max 455%)
+- Memory (RSS): 70 MB - 97 MB
+- Event loop delay: 0.08 ms on average (max 3.33 ms)
+- Detected issues: none
+
+Run on:
 
 ```bash
-Operating System:
-  Platform: linux
-  Arch: x64
-  Version: Linux 7.0.0-28-generic
-  Available memory (MB): 7237
-  Available CPU cores: 8
-Binaries:
-  Node: 24.18.1
-  pnpm: 11.17.0
+CPU: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz (8 cores)
+Memory: 7237 MB
+OS: Linux 7.0.0-28-generic x64
+Node: 24.18.1
+pnpm: 11.17.0
 ```

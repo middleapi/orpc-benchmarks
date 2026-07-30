@@ -1,24 +1,19 @@
 # oRPC OpenAPI Runtime Benchmark
 
-Run the benchmark with:
+- Evaluates the performance of oRPC's OpenAPI runtime on a project with **6 procedures** and **3 routers**; every procedure is exposed as a RESTful `GET` endpoint that reads its input from query parameters.
+- Uses [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod so the results reflect oRPC's performance without external influences.
+- Comparable to the other benchmarks in the `openapi` group: [openapi-orpc](../openapi-orpc), [openapi-hono](../openapi-hono).
+- Every run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the committed report at [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html).
+
+## How to run
 
 ```bash
 pnpm bench
 ```
 
-## Overview
+## Latest Result
 
-This benchmark evaluates the performance of oRPC's OpenAPI runtime on a project with **6 procedures** and **3 routers**. Every procedure is exposed as a RESTful `GET` endpoint that reads its input from query parameters.
-
-We use [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod to ensure the results reflect oRPC's performance without external influences.
-
-Benchmarks in the `openapi` group are comparable to each other: [openapi-orpc](../openapi-orpc), [openapi-hono](../openapi-hono).
-
-Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html).
-
-## Benchmark Results
-
-### oRPC 2.0.0-beta.22 - 2026-07-30
+oRPC 2.0.0-beta.22 - 2026-07-30
 
 ```bash
 Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
@@ -43,18 +38,19 @@ Req/Bytes counts sampled once per second.
 281k requests in 20.01s, 69.7 MB read
 ```
 
-**Clinic Doctor Report**: [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html)
+Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
 
-**Environment**:
+- CPU usage: ~104% on average (max 407%)
+- Memory (RSS): 70 MB - 90 MB
+- Event loop delay: 0.07 ms on average (max 2.97 ms)
+- Detected issues: none
+
+Run on:
 
 ```bash
-Operating System:
-  Platform: linux
-  Arch: x64
-  Version: Linux 7.0.0-28-generic
-  Available memory (MB): 7237
-  Available CPU cores: 8
-Binaries:
-  Node: 24.18.1
-  pnpm: 11.17.0
+CPU: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz (8 cores)
+Memory: 7237 MB
+OS: Linux 7.0.0-28-generic x64
+Node: 24.18.1
+pnpm: 11.17.0
 ```

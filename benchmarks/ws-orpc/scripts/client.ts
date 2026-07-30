@@ -10,6 +10,7 @@ const DURATION_MS = 20_000;
 function createClient(): RouterClient<typeof router> {
   const link = new RPCLink({
     connect: () => new WebSocket(URL),
+    connectOnInit: true,
   });
 
   return createORPCClient(link);
