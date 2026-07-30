@@ -20,17 +20,17 @@ tRPC 11.18.0 - 2026-07-30
 Running 20s WebSocket test @ ws://127.0.0.1:3000
 10 connections
 
-Latency: avg=1.94 ms stdev=0.68 ms p50=1.99 ms p97.5=2.92 ms p99=3.30 ms max=49.90 ms
-Req/Sec: avg=5,152 stdev=168 min=4,813 max=5,502
+Latency: avg=1.88 ms stdev=0.70 ms p50=1.97 ms p97.5=2.89 ms p99=3.21 ms max=49.84 ms
+Req/Sec: avg=5,326 stdev=208 min=5,067 max=5,962
 
-103,042 requests in 20.00s
+106,516 requests in 20.00s
 ```
 
 Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
 
-- CPU usage: ~45% on average (max 317%)
-- Memory (RSS): 67 MB - 75 MB
-- Event loop delay: 0.11 ms on average (max 1.78 ms)
+- CPU usage: ~46% on average (max 277%)
+- Memory (RSS): 66 MB - 74 MB
+- Event loop delay: 0.13 ms on average (max 1.61 ms)
 - Detected issues: cpu: performance
 
 Run on:

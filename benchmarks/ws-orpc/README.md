@@ -20,17 +20,17 @@ oRPC 2.0.0-beta.22 - 2026-07-30
 Running 20s WebSocket test @ ws://127.0.0.1:3000
 10 connections
 
-Latency: avg=0.53 ms stdev=0.64 ms p50=0.48 ms p97.5=1.20 ms p99=1.49 ms max=114.17 ms
-Req/Sec: avg=18,716 stdev=1,988 min=10,778 max=20,533
+Latency: avg=0.46 ms stdev=0.43 ms p50=0.43 ms p97.5=0.92 ms p99=1.10 ms max=81.30 ms
+Req/Sec: avg=21,595 stdev=2,891 min=14,349 max=24,118
 
-374,310 requests in 20.00s
+431,894 requests in 20.00s
 ```
 
 Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
 
-- CPU usage: ~103% on average (max 379%)
-- Memory (RSS): 71 MB - 98 MB
-- Event loop delay: 0.04 ms on average (max 3.69 ms)
+- CPU usage: ~103% on average (max 455%)
+- Memory (RSS): 70 MB - 96 MB
+- Event loop delay: 0.02 ms on average (max 0.66 ms)
 - Detected issues: none
 
 Run on:

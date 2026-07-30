@@ -21,14 +21,14 @@ Identifiers:      86210
 Symbols:         774604
 Types:           475174
 Instantiations: 2470735
-Memory used:    486687K
-Memory allocs:  5341092
-Config time:     0.005s
-Parse time:      0.099s
+Memory used:    486630K
+Memory allocs:  5340649
+Config time:     0.004s
+Parse time:      0.086s
 Bind time:       0.029s
-Check time:      2.103s
+Check time:      1.981s
 Emit time:       0.002s
-Total time:      2.240s
+Total time:      2.113s
 ```
 
 Run on:
