@@ -16,7 +16,7 @@ Since [autocannon](https://github.com/mcollina/autocannon) only supports HTTP, t
 
 Benchmarks in the `ws` group are comparable to each other: [ws-orpc](../ws-orpc), [ws-trpc](../ws-trpc).
 
-Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [public/clinic-doctor.html](./public/clinic-doctor.html).
+Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html).
 
 ## Benchmark Results
 
@@ -32,7 +32,7 @@ Req/Sec: avg=19,110 stdev=2,608 min=12,452 max=22,974
 382,206 requests in 20.00s
 ```
 
-**Clinic Doctor Report**: [public/clinic-doctor.html](./public/clinic-doctor.html)
+**Clinic Doctor Report**: [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html)
 
 **Environment**:
 

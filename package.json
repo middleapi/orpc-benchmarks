@@ -17,7 +17,6 @@
     "@trpc/server": "11.18.0",
     "@types/node": "^26.1.2",
     "@types/ws": "^8.18.1",
-    "autocannon": "^8.0.0",
     "clinic": "^13.0.0",
     "hono": "^4.12.32",
     "oxfmt": "^0.61.0",

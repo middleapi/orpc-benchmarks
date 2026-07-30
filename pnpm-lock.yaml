@@ -32,9 +32,6 @@ importers:
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
-      autocannon:
-        specifier: ^8.0.0
-        version: 8.0.0
       clinic:
         specifier: ^13.0.0
         version: 13.0.0(supports-color@7.2.0)
@@ -292,9 +289,6 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       hono: ^4
-
-  '@minimistjs/subarg@1.0.0':
-    resolution: {integrity: sha512-Q/ONBiM2zNeYUy0mVSO44mWWKYM3UHuEK43PKIOzJCbvUnPoMH1K+gk3cf1kgnCVJFlWmddahQQCmrmBGlk9jQ==}
 
   '@napi-rs/wasm-runtime@1.2.0':
     resolution: {integrity: sha512-kDoONqMa+VnZ4vvvu/ZUurpJ4gkZU57e7g69qpNgWhYcZFPUHZM2CEMKm+cG6ufDVALbjMvfmMjFVqaK7uEMnA==}
@@ -1015,10 +1009,6 @@ packages:
 
   autocannon@7.15.0:
     resolution: {integrity: sha512-NaP2rQyA+tcubOJMFv2+oeW9jv2pq/t+LM6BL3cfJic0HEfscEcnWgAyU5YovE/oTHUzAgTliGdLPR+RQAWUbg==}
-    hasBin: true
-
-  autocannon@8.0.0:
-    resolution: {integrity: sha512-fMMcWc2JPFcUaqHeR6+PbmEpTxCrPZyBUM95oG4w3ngJ8NfBNas/ZXA+pTHXLqJ0UlFVTcy05GC25WxKx/M20A==}
     hasBin: true
 
   available-typed-arrays@1.0.7:
@@ -3694,10 +3684,6 @@ snapshots:
     dependencies:
       hono: 4.12.32
 
-  '@minimistjs/subarg@1.0.0':
-    dependencies:
-      minimist: 1.2.8
-
   '@napi-rs/wasm-runtime@1.2.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)':
     dependencies:
       '@emnapi/core': 1.11.2
@@ -4228,32 +4214,6 @@ snapshots:
       retimer: 3.0.0
       semver: 7.8.5
       subarg: 1.0.0
-      timestring: 6.0.0
-
-  autocannon@8.0.0:
-    dependencies:
-      '@minimistjs/subarg': 1.0.0
-      chalk: 4.1.2
-      char-spinner: 1.0.1
-      cli-table3: 0.6.5
-      color-support: 1.1.3
-      cross-argv: 2.0.0
-      form-data: 4.0.6
-      has-async-hooks: 1.0.0
-      hdr-histogram-js: 3.0.1
-      hdr-histogram-percentiles-obj: 3.0.0
-      http-parser-js: 0.5.10
-      hyperid: 3.3.0
-      lodash.chunk: 4.2.0
-      lodash.clonedeep: 4.5.0
-      lodash.flatten: 4.4.0
-      manage-path: 2.0.0
-      on-net-listen: 1.1.2
-      pretty-bytes: 5.6.0
-      progress: 2.0.3
-      reinterval: 1.1.0
-      retimer: 3.0.0
-      semver: 7.8.5
       timestring: 6.0.0
 
   available-typed-arrays@1.0.7:

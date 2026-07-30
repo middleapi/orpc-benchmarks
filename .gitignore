@@ -6,6 +6,11 @@
 !.vscode/
 !.github/
 
+# Clinic.js: keep only the generated report in git
+!.clinic/
+**/.clinic/**
+!**/.clinic/report.clinic-doctor.html
+
 # Common generated folders
 logs/
 node_modules/

@@ -14,7 +14,7 @@ We use [Standard Schema](https://github.com/standard-schema/standard-schema) ins
 
 Benchmarks in the `rpc` group are comparable to each other: [rpc-orpc](../rpc-orpc), [rpc-trpc](../rpc-trpc).
 
-Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [public/clinic-doctor.html](./public/clinic-doctor.html).
+Each run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the report at [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html).
 
 ## Benchmark Results
 
@@ -27,23 +27,23 @@ Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?data=%7B%22json%22%3
 ┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
 │ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
 ├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
-│ Latency │ 0 ms │ 0 ms │ 1 ms  │ 2 ms │ 0.16 ms │ 0.46 ms │ 22 ms │
+│ Latency │ 0 ms │ 0 ms │ 1 ms  │ 2 ms │ 0.18 ms │ 0.52 ms │ 33 ms │
 └─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
-┌───────────┬─────────┬─────────┬─────────┬─────────┬──────────┬──────────┬─────────┐
-│ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg      │ Stdev    │ Min     │
-├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼──────────┼─────────┤
-│ Req/Sec   │ 9,679   │ 9,679   │ 14,111  │ 15,407  │ 13,839.6 │ 1,260.57 │ 9,674   │
-├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼──────────┼─────────┤
-│ Bytes/Sec │ 2.66 MB │ 2.66 MB │ 3.88 MB │ 4.24 MB │ 3.81 MB  │ 347 kB   │ 2.66 MB │
-└───────────┴─────────┴─────────┴─────────┴─────────┴──────────┴──────────┴─────────┘
+┌───────────┬─────────┬─────────┬─────────┬─────────┬──────────┬─────────┬─────────┐
+│ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg      │ Stdev   │ Min     │
+├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┼─────────┤
+│ Req/Sec   │ 7,171   │ 7,171   │ 14,039  │ 15,431  │ 13,587.9 │ 1,886.7 │ 7,171   │
+├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┼─────────┤
+│ Bytes/Sec │ 1.97 MB │ 1.97 MB │ 3.86 MB │ 4.24 MB │ 3.74 MB  │ 519 kB  │ 1.97 MB │
+└───────────┴─────────┴─────────┴─────────┴─────────┴──────────┴─────────┴─────────┘
 
 Req/Bytes counts sampled once per second.
 # of samples: 20
 
-277k requests in 20.01s, 76.1 MB read
+272k requests in 20.02s, 74.7 MB read
 ```
 
-**Clinic Doctor Report**: [public/clinic-doctor.html](./public/clinic-doctor.html)
+**Clinic Doctor Report**: [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html)
 
 **Environment**:
 
