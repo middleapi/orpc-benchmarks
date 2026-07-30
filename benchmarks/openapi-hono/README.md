@@ -14,6 +14,47 @@ Each route uses a pass-through `hono/validator`, mirroring the no-op Standard Sc
 
 Benchmarks in the `openapi` group are comparable to each other: [openapi-orpc](../openapi-orpc), [openapi-hono](../openapi-hono).
 
+Each run profiles the server with [0x](https://github.com/davidmarkclements/0x) and overwrites the flamegraph at [public/flamegraph.html](./public/flamegraph.html).
+
 ## Benchmark Results
 
-No results have been recorded yet.
+### Hono 4.12.32 - 2026-07-30
+
+```bash
+Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
+10 connections
+
+┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
+│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
+├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
+│ Latency │ 0 ms │ 0 ms │ 1 ms  │ 1 ms │ 0.15 ms │ 0.73 ms │ 64 ms │
+└─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
+┌───────────┬─────────┬─────────┬─────────┬─────────┬─────────┬──────────┬─────────┐
+│ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg     │ Stdev    │ Min     │
+├───────────┼─────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┤
+│ Req/Sec   │ 8,975   │ 8,975   │ 14,023  │ 14,839  │ 13,526  │ 1,519.84 │ 8,975   │
+├───────────┼─────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┤
+│ Bytes/Sec │ 2.23 MB │ 2.23 MB │ 3.48 MB │ 3.68 MB │ 3.35 MB │ 377 kB   │ 2.23 MB │
+└───────────┴─────────┴─────────┴─────────┴─────────┴─────────┴──────────┴─────────┘
+
+Req/Bytes counts sampled once per second.
+# of samples: 20
+
+271k requests in 20.01s, 67.1 MB read
+```
+
+**Flamegraph**: [public/flamegraph.html](./public/flamegraph.html)
+
+**Environment**:
+
+```bash
+Operating System:
+  Platform: linux
+  Arch: x64
+  Version: Linux 7.0.0-28-generic
+  Available memory (MB): 7237
+  Available CPU cores: 8
+Binaries:
+  Node: 24.18.1
+  pnpm: 11.17.0
+```

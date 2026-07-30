@@ -1,0 +1,10 @@
+{
+  "name": "ws-orpc",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.mjs",
+  "scripts": {
+    "bench": "tsdown src/main.ts && 0x --output-dir .0x --output-html public/flamegraph.html --on-port 'tsx scripts/client.ts' -- node dist/main.mjs"
+  }
+}

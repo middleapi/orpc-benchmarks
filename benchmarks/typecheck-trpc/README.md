@@ -12,6 +12,8 @@ This benchmark evaluates TypeScript type-checking performance on a project with 
 
 We use [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod to ensure the results reflect tRPC's performance without external influences.
 
+Benchmarks in the `typecheck` group are comparable to each other: [typecheck-orpc](../typecheck-orpc), [typecheck-trpc](../typecheck-trpc).
+
 ## Benchmark Results
 
 ### tRPC 11.0.0-rc.840 - 2025-03-20T10:27:05.931Z
