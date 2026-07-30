@@ -12,6 +12,8 @@ dist-ssr/
 build/
 coverage/
 temp/
+src/consume/
+src/router/
 
 # Common generated files
 *.log

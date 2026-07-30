@@ -1,10 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "types": ["node", "vitest/globals"]
-  },
-  "references": [],
   "include": [
     "playground",
     "scripts",
@@ -20,6 +16,6 @@
     "*/*/playground",
     "*/*/scripts",
     "*/*/tests",
-    "*/*/*"
-  ]
+    "*/*/*",
+  ],
 }
