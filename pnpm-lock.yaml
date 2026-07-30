@@ -8,7 +8,13 @@ importers:
 
   .:
     devDependencies:
+      '@hono/node-server':
+        specifier: ^2.0.12
+        version: 2.0.12(hono@4.12.32)
       '@orpc/client':
+        specifier: 2.0.0-beta.22
+        version: 2.0.0-beta.22
+      '@orpc/openapi':
         specifier: 2.0.0-beta.22
         version: 2.0.0-beta.22
       '@orpc/server':
@@ -23,12 +29,15 @@ importers:
       '@types/node':
         specifier: ^26.1.2
         version: 26.1.2
-      autocannon:
-        specifier: ^8.0.0
-        version: 8.0.0
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       clinic:
         specifier: ^13.0.0
         version: 13.0.0(supports-color@7.2.0)
+      hono:
+        specifier: ^4.12.32
+        version: 4.12.32
       oxfmt:
         specifier: ^0.61.0
         version: 0.61.0
@@ -47,6 +56,13 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      ws:
+        specifier: ^8.21.1
+        version: 8.21.1
+
+  benchmarks/openapi-hono: {}
+
+  benchmarks/openapi-orpc: {}
 
   benchmarks/rpc-orpc: {}
 
@@ -55,6 +71,10 @@ importers:
   benchmarks/typecheck-orpc: {}
 
   benchmarks/typecheck-trpc: {}
+
+  benchmarks/ws-orpc: {}
+
+  benchmarks/ws-trpc: {}
 
 packages:
 
@@ -258,8 +278,17 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@minimistjs/subarg@1.0.0':
-    resolution: {integrity: sha512-Q/ONBiM2zNeYUy0mVSO44mWWKYM3UHuEK43PKIOzJCbvUnPoMH1K+gk3cf1kgnCVJFlWmddahQQCmrmBGlk9jQ==}
+  '@hey-api/spec-types@0.0.0-next-20260408030107':
+    resolution: {integrity: sha512-P5DKr4dpZ7lmZpZt2bc2KWuzU9vl4GZcN7VrjchZF1WWKNGZFnwWhBxZo1t6P2muOCopIvqD2Fvp5os4QiitKA==}
+
+  '@hey-api/types@0.1.4':
+    resolution: {integrity: sha512-thWfawrDIP7wSI9ioT13I5soaaqB5vAPIiZmgD8PbeEVKNrkonc0N/Sjj97ezl7oQgusZmaNphGdMKipPO6IBg==}
+
+  '@hono/node-server@2.0.12':
+    resolution: {integrity: sha512-eWpQYr67tqJLeaSUl0Q+TquuYfUdTibpOJlUMV2FfUP7+KqCC5TufnwnlXL6mobZBJbGAYRd7ZvEBDCbLInjhg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      hono: ^4
 
   '@napi-rs/wasm-runtime@1.2.0':
     resolution: {integrity: sha512-kDoONqMa+VnZ4vvvu/ZUurpJ4gkZU57e7g69qpNgWhYcZFPUHZM2CEMKm+cG6ufDVALbjMvfmMjFVqaK7uEMnA==}
@@ -277,6 +306,23 @@ packages:
 
   '@orpc/contract@2.0.0-beta.22':
     resolution: {integrity: sha512-vrdbAcNRdxCz5pBnWyvkSwRLxr9z1mrqBOljBLXFydNAvyfcDc6apRz2i9yWrTIR2EwQ6Bv9nFP8TueJc2NNXg==}
+
+  '@orpc/json-schema@2.0.0-beta.22':
+    resolution: {integrity: sha512-aaxvavgD8iRmHikj+O0HSzIgoYHqzpCdcuCYyQIjU4JmlktiNG776sE6uVN9EEEoicfz6Lrfa1vxKje+oGzoYQ==}
+
+  '@orpc/openapi@2.0.0-beta.22':
+    resolution: {integrity: sha512-KEiWRGlBKvtPfaGU0Pk0oOn9p4a5qd6fNaB5iMT4fkM4kJE2hDSV++2XsjtdcUDbE4ETCmzxsJb9gtMHW1y6Yw==}
+    peerDependencies:
+      '@scalar/api-reference': '>=1.57.2'
+      '@types/swagger-ui': '>=5.32.0'
+      swagger-ui: '>=5.32.6'
+    peerDependenciesMeta:
+      '@scalar/api-reference':
+        optional: true
+      '@types/swagger-ui':
+        optional: true
+      swagger-ui:
+        optional: true
 
   '@orpc/server@2.0.0-beta.22':
     resolution: {integrity: sha512-arUKWvmDyvvUHBembM6ypYoPpd80AL1L442CiBnXwgZvYZqKEDbjN9jRXPqUqMkXXZ0fnsz6TY437WBojZnjrQ==}
@@ -592,6 +638,9 @@ packages:
 
   '@types/webgl-ext@0.0.30':
     resolution: {integrity: sha512-LKVgNmBxN0BbljJrVUwkxwRYqzsAEPcZOe6S2T6ZaBDIrFp0qu4FNlpc5sM1tGbXUYFgdVQIoeLk1Y1UoblyEg==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     resolution: {integrity: sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==}
@@ -960,10 +1009,6 @@ packages:
 
   autocannon@7.15.0:
     resolution: {integrity: sha512-NaP2rQyA+tcubOJMFv2+oeW9jv2pq/t+LM6BL3cfJic0HEfscEcnWgAyU5YovE/oTHUzAgTliGdLPR+RQAWUbg==}
-    hasBin: true
-
-  autocannon@8.0.0:
-    resolution: {integrity: sha512-fMMcWc2JPFcUaqHeR6+PbmEpTxCrPZyBUM95oG4w3ngJ8NfBNas/ZXA+pTHXLqJ0UlFVTcy05GC25WxKx/M20A==}
     hasBin: true
 
   available-typed-arrays@1.0.7:
@@ -1843,6 +1888,10 @@ packages:
   hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
 
+  hono@4.12.32:
+    resolution: {integrity: sha512-XcuyW9qE2kJn07PkecMOBd5Vq/hMy7mmGw+idz1yblbg9N17ijJODrvPkn7/dwL3Kulj8LcRJ69DLOWf91dRUg==}
+    engines: {node: '>=16.9.0'}
+
   hookable@6.1.1:
     resolution: {integrity: sha512-U9LYDy1CwhMCnprUfeAZWZGByVbhd54hwepegYTK7Pi5NvqEj63ifz5z+xukznehT7i6NIZRu89Ay1AZmRsLEQ==}
 
@@ -2072,6 +2121,9 @@ packages:
 
   json-schema-typed@7.0.3:
     resolution: {integrity: sha512-7DE8mpG+/fVw+dTpjbxnx47TaMnDfOI1jwft9g1VybltZCduyRQPJPvc+zzKY9WPHxhPWczyFuYa6I8Mw4iU5A==}
+
+  json-schema-typed@8.0.2:
+    resolution: {integrity: sha512-fQhoXdcvc3V28x7C7BMs4P5+kNlgUURe2jmUT1T//oBRMDrqy1QPelJimwZGo7Hg9VPV3EQV5Bnq4hbFy2vetA==}
 
   json-schema@0.4.0:
     resolution: {integrity: sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==}
@@ -2721,6 +2773,9 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
+  rou3@0.9.1:
+    resolution: {integrity: sha512-z/sSmzvtwMDDnxsPVhfWMuG6F6mbmhFDXoVqLmMfbpDD9qfV3GDmSQpf0+W296/ZDIpW2wcMmBfpVFzcnOi/nA==}
+
   run-async@2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}
     engines: {node: '>=0.12.0'}
@@ -3327,6 +3382,18 @@ packages:
   write-file-atomic@3.0.3:
     resolution: {integrity: sha512-AvHcyZ5JnSfq3ioSyjrBkH9yW4m7Ayk8/9My/DD9onKeu/94fwrMocemO2QAJFAlnnDN+ZDS+ZjAR5ua1/PV/Q==}
 
+  ws@8.21.1:
+    resolution: {integrity: sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xdg-basedir@4.0.0:
     resolution: {integrity: sha512-PSNhEJDejZYV7h50BohL09Er9VaIefr2LMAf3OEmpCkjOi34eYyQYAXUTjEQtZJTKcF0E2UKTh+osDLsgNim9Q==}
     engines: {node: '>=8'}
@@ -3607,9 +3674,15 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
-  '@minimistjs/subarg@1.0.0':
+  '@hey-api/spec-types@0.0.0-next-20260408030107':
     dependencies:
-      minimist: 1.2.8
+      '@hey-api/types': 0.1.4
+
+  '@hey-api/types@0.1.4': {}
+
+  '@hono/node-server@2.0.12(hono@4.12.32)':
+    dependencies:
+      hono: 4.12.32
 
   '@napi-rs/wasm-runtime@1.2.0(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)':
     dependencies:
@@ -3639,6 +3712,33 @@ snapshots:
       '@standard-schema/spec': 1.1.0
     transitivePeerDependencies:
       - '@opentelemetry/api'
+
+  '@orpc/json-schema@2.0.0-beta.22':
+    dependencies:
+      '@orpc/client': 2.0.0-beta.22
+      '@orpc/contract': 2.0.0-beta.22
+      '@orpc/server': 2.0.0-beta.22
+      '@orpc/shared': 2.0.0-beta.22
+      '@standard-schema/spec': 1.1.0
+      json-schema-typed: 8.0.2
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
+
+  '@orpc/openapi@2.0.0-beta.22':
+    dependencies:
+      '@hey-api/spec-types': 0.0.0-next-20260408030107
+      '@orpc/client': 2.0.0-beta.22
+      '@orpc/contract': 2.0.0-beta.22
+      '@orpc/json-schema': 2.0.0-beta.22
+      '@orpc/server': 2.0.0-beta.22
+      '@orpc/shared': 2.0.0-beta.22
+      '@standardserver/core': 0.6.0
+      '@standardserver/fetch': 0.6.0
+      rou3: 0.9.1
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
 
   '@orpc/server@2.0.0-beta.22':
     dependencies:
@@ -3855,6 +3955,10 @@ snapshots:
   '@types/seedrandom@2.4.34': {}
 
   '@types/webgl-ext@0.0.30': {}
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 26.1.2
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -4110,32 +4214,6 @@ snapshots:
       retimer: 3.0.0
       semver: 7.8.5
       subarg: 1.0.0
-      timestring: 6.0.0
-
-  autocannon@8.0.0:
-    dependencies:
-      '@minimistjs/subarg': 1.0.0
-      chalk: 4.1.2
-      char-spinner: 1.0.1
-      cli-table3: 0.6.5
-      color-support: 1.1.3
-      cross-argv: 2.0.0
-      form-data: 4.0.6
-      has-async-hooks: 1.0.0
-      hdr-histogram-js: 3.0.1
-      hdr-histogram-percentiles-obj: 3.0.0
-      http-parser-js: 0.5.10
-      hyperid: 3.3.0
-      lodash.chunk: 4.2.0
-      lodash.clonedeep: 4.5.0
-      lodash.flatten: 4.4.0
-      manage-path: 2.0.0
-      on-net-listen: 1.1.2
-      pretty-bytes: 5.6.0
-      progress: 2.0.3
-      reinterval: 1.1.0
-      retimer: 3.0.0
-      semver: 7.8.5
       timestring: 6.0.0
 
   available-typed-arrays@1.0.7:
@@ -5243,6 +5321,8 @@ snapshots:
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
 
+  hono@4.12.32: {}
+
   hookable@6.1.1: {}
 
   hsl-to-rgb-for-reals@1.1.1: {}
@@ -5451,6 +5531,8 @@ snapshots:
   json-schema-traverse@1.0.0: {}
 
   json-schema-typed@7.0.3: {}
+
+  json-schema-typed@8.0.2: {}
 
   json-schema@0.4.0: {}
 
@@ -6177,6 +6259,8 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.0
       '@rolldown/binding-win32-x64-msvc': 1.2.0
 
+  rou3@0.9.1: {}
+
   run-async@2.4.1: {}
 
   rxjs@6.6.7:
@@ -6844,6 +6928,8 @@ snapshots:
       is-typedarray: 1.0.0
       signal-exit: 3.0.7
       typedarray-to-buffer: 3.1.5
+
+  ws@8.21.1: {}
 
   xdg-basedir@4.0.0: {}
 

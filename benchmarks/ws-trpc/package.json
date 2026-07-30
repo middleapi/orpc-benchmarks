@@ -1,0 +1,10 @@
+{
+  "name": "ws-trpc",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.mjs",
+  "scripts": {
+    "bench": "tsdown src/main.ts && clinic doctor --stop-delay 5000 --dest .clinic --name report --on-port 'tsx scripts/client.ts' -- node dist/main.mjs"
+  }
+}
