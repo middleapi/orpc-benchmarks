@@ -8,7 +8,13 @@ importers:
 
   .:
     devDependencies:
+      '@hono/node-server':
+        specifier: ^2.0.12
+        version: 2.0.12(hono@4.12.32)
       '@orpc/client':
+        specifier: 2.0.0-beta.22
+        version: 2.0.0-beta.22
+      '@orpc/openapi':
         specifier: 2.0.0-beta.22
         version: 2.0.0-beta.22
       '@orpc/server':
@@ -29,6 +35,9 @@ importers:
       clinic:
         specifier: ^13.0.0
         version: 13.0.0(supports-color@7.2.0)
+      hono:
+        specifier: ^4.12.32
+        version: 4.12.32
       oxfmt:
         specifier: ^0.61.0
         version: 0.61.0
@@ -48,9 +57,15 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  benchmarks/openapi-hono: {}
+
+  benchmarks/openapi-orpc: {}
+
   benchmarks/rpc-orpc: {}
 
   benchmarks/rpc-trpc: {}
+
+  benchmarks/typecheck-hono: {}
 
   benchmarks/typecheck-orpc: {}
 
@@ -258,6 +273,18 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@hey-api/spec-types@0.0.0-next-20260408030107':
+    resolution: {integrity: sha512-P5DKr4dpZ7lmZpZt2bc2KWuzU9vl4GZcN7VrjchZF1WWKNGZFnwWhBxZo1t6P2muOCopIvqD2Fvp5os4QiitKA==}
+
+  '@hey-api/types@0.1.4':
+    resolution: {integrity: sha512-thWfawrDIP7wSI9ioT13I5soaaqB5vAPIiZmgD8PbeEVKNrkonc0N/Sjj97ezl7oQgusZmaNphGdMKipPO6IBg==}
+
+  '@hono/node-server@2.0.12':
+    resolution: {integrity: sha512-eWpQYr67tqJLeaSUl0Q+TquuYfUdTibpOJlUMV2FfUP7+KqCC5TufnwnlXL6mobZBJbGAYRd7ZvEBDCbLInjhg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      hono: ^4
+
   '@minimistjs/subarg@1.0.0':
     resolution: {integrity: sha512-Q/ONBiM2zNeYUy0mVSO44mWWKYM3UHuEK43PKIOzJCbvUnPoMH1K+gk3cf1kgnCVJFlWmddahQQCmrmBGlk9jQ==}
 
@@ -277,6 +304,23 @@ packages:
 
   '@orpc/contract@2.0.0-beta.22':
     resolution: {integrity: sha512-vrdbAcNRdxCz5pBnWyvkSwRLxr9z1mrqBOljBLXFydNAvyfcDc6apRz2i9yWrTIR2EwQ6Bv9nFP8TueJc2NNXg==}
+
+  '@orpc/json-schema@2.0.0-beta.22':
+    resolution: {integrity: sha512-aaxvavgD8iRmHikj+O0HSzIgoYHqzpCdcuCYyQIjU4JmlktiNG776sE6uVN9EEEoicfz6Lrfa1vxKje+oGzoYQ==}
+
+  '@orpc/openapi@2.0.0-beta.22':
+    resolution: {integrity: sha512-KEiWRGlBKvtPfaGU0Pk0oOn9p4a5qd6fNaB5iMT4fkM4kJE2hDSV++2XsjtdcUDbE4ETCmzxsJb9gtMHW1y6Yw==}
+    peerDependencies:
+      '@scalar/api-reference': '>=1.57.2'
+      '@types/swagger-ui': '>=5.32.0'
+      swagger-ui: '>=5.32.6'
+    peerDependenciesMeta:
+      '@scalar/api-reference':
+        optional: true
+      '@types/swagger-ui':
+        optional: true
+      swagger-ui:
+        optional: true
 
   '@orpc/server@2.0.0-beta.22':
     resolution: {integrity: sha512-arUKWvmDyvvUHBembM6ypYoPpd80AL1L442CiBnXwgZvYZqKEDbjN9jRXPqUqMkXXZ0fnsz6TY437WBojZnjrQ==}
@@ -1843,6 +1887,10 @@ packages:
   hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
 
+  hono@4.12.32:
+    resolution: {integrity: sha512-XcuyW9qE2kJn07PkecMOBd5Vq/hMy7mmGw+idz1yblbg9N17ijJODrvPkn7/dwL3Kulj8LcRJ69DLOWf91dRUg==}
+    engines: {node: '>=16.9.0'}
+
   hookable@6.1.1:
     resolution: {integrity: sha512-U9LYDy1CwhMCnprUfeAZWZGByVbhd54hwepegYTK7Pi5NvqEj63ifz5z+xukznehT7i6NIZRu89Ay1AZmRsLEQ==}
 
@@ -2072,6 +2120,9 @@ packages:
 
   json-schema-typed@7.0.3:
     resolution: {integrity: sha512-7DE8mpG+/fVw+dTpjbxnx47TaMnDfOI1jwft9g1VybltZCduyRQPJPvc+zzKY9WPHxhPWczyFuYa6I8Mw4iU5A==}
+
+  json-schema-typed@8.0.2:
+    resolution: {integrity: sha512-fQhoXdcvc3V28x7C7BMs4P5+kNlgUURe2jmUT1T//oBRMDrqy1QPelJimwZGo7Hg9VPV3EQV5Bnq4hbFy2vetA==}
 
   json-schema@0.4.0:
     resolution: {integrity: sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==}
@@ -2720,6 +2771,9 @@ packages:
     resolution: {integrity: sha512-u7tgm5l4Yw1iTqUL4EcYOAt7fFvCgQMLeidrnD4GALlC6aOznCjezYajgxeyKw27u0Q5N7fwgCzjVyPIWzwuBA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
+
+  rou3@0.9.1:
+    resolution: {integrity: sha512-z/sSmzvtwMDDnxsPVhfWMuG6F6mbmhFDXoVqLmMfbpDD9qfV3GDmSQpf0+W296/ZDIpW2wcMmBfpVFzcnOi/nA==}
 
   run-async@2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}
@@ -3607,6 +3661,16 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
+  '@hey-api/spec-types@0.0.0-next-20260408030107':
+    dependencies:
+      '@hey-api/types': 0.1.4
+
+  '@hey-api/types@0.1.4': {}
+
+  '@hono/node-server@2.0.12(hono@4.12.32)':
+    dependencies:
+      hono: 4.12.32
+
   '@minimistjs/subarg@1.0.0':
     dependencies:
       minimist: 1.2.8
@@ -3639,6 +3703,33 @@ snapshots:
       '@standard-schema/spec': 1.1.0
     transitivePeerDependencies:
       - '@opentelemetry/api'
+
+  '@orpc/json-schema@2.0.0-beta.22':
+    dependencies:
+      '@orpc/client': 2.0.0-beta.22
+      '@orpc/contract': 2.0.0-beta.22
+      '@orpc/server': 2.0.0-beta.22
+      '@orpc/shared': 2.0.0-beta.22
+      '@standard-schema/spec': 1.1.0
+      json-schema-typed: 8.0.2
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
+
+  '@orpc/openapi@2.0.0-beta.22':
+    dependencies:
+      '@hey-api/spec-types': 0.0.0-next-20260408030107
+      '@orpc/client': 2.0.0-beta.22
+      '@orpc/contract': 2.0.0-beta.22
+      '@orpc/json-schema': 2.0.0-beta.22
+      '@orpc/server': 2.0.0-beta.22
+      '@orpc/shared': 2.0.0-beta.22
+      '@standardserver/core': 0.6.0
+      '@standardserver/fetch': 0.6.0
+      rou3: 0.9.1
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
 
   '@orpc/server@2.0.0-beta.22':
     dependencies:
@@ -5243,6 +5334,8 @@ snapshots:
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
 
+  hono@4.12.32: {}
+
   hookable@6.1.1: {}
 
   hsl-to-rgb-for-reals@1.1.1: {}
@@ -5451,6 +5544,8 @@ snapshots:
   json-schema-traverse@1.0.0: {}
 
   json-schema-typed@7.0.3: {}
+
+  json-schema-typed@8.0.2: {}
 
   json-schema@0.4.0: {}
 
@@ -6176,6 +6271,8 @@ snapshots:
       '@rolldown/binding-wasm32-wasi': 1.2.0
       '@rolldown/binding-win32-arm64-msvc': 1.2.0
       '@rolldown/binding-win32-x64-msvc': 1.2.0
+
+  rou3@0.9.1: {}
 
   run-async@2.4.1: {}
 

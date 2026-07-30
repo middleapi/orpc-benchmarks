@@ -1,0 +1,10 @@
+{
+  "name": "openapi-hono",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.mjs",
+  "scripts": {
+    "bench": "tsdown src/main.ts && clinic doctor --stop-delay 5000 --on-port 'autocannon -d 20 http://127.0.0.1:$PORT/nested/procedure_1?who=hello%20world' -- node dist/main.mjs"
+  }
+}
