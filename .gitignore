@@ -2,6 +2,7 @@
 .*
 !.gitignore
 !.npmrc
+!.prettierignore
 !.*.example
 !.vscode/
 !.github/
