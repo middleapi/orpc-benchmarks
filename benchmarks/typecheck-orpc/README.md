@@ -12,31 +12,31 @@ pnpm bench
 
 ## Latest Result
 
-oRPC 2.0.0-beta.22, TypeScript 7.0.2 - 2026-07-30
+oRPC 2.0.0-beta.26, TypeScript 7.0.2 - 2026-08-09
 
 ```bash
 Files:             1316
-Lines:            45799
-Identifiers:      86210
-Symbols:         774604
-Types:           475174
-Instantiations: 2470735
-Memory used:    486630K
-Memory allocs:  5340649
-Config time:     0.004s
-Parse time:      0.086s
-Bind time:       0.029s
-Check time:      1.981s
-Emit time:       0.002s
-Total time:      2.113s
+Lines:            46472
+Identifiers:      86527
+Symbols:         774643
+Types:           475166
+Instantiations: 2470731
+Memory used:    486854K
+Memory allocs:  5340338
+Config time:     0.014s
+Parse time:      0.108s
+Bind time:       0.033s
+Check time:      1.794s
+Emit time:       0.009s
+Total time:      1.964s
 ```
 
 Run on:
 
 ```bash
 CPU: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz (8 cores)
-Memory: 7237 MB
-OS: Linux 7.0.0-28-generic x64
+Memory: 7238 MB
+OS: Linux 7.0.0-29-generic x64
 Node: 24.18.1
 pnpm: 11.17.0
 ```

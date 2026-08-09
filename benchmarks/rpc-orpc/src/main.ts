@@ -44,9 +44,7 @@ const router = {
 };
 
 const handler = new RPCHandler(router, {
-  csrfGuardPlugin: {
-    enabled: false,
-  },
+  allowMethods: ["GET"],
 });
 
 const server = createServer(async (req, res) => {

@@ -12,31 +12,31 @@ pnpm bench
 
 ## Latest Result
 
-tRPC 11.18.0, TypeScript 7.0.2 - 2026-07-30
+tRPC 11.18.0, TypeScript 7.0.2 - 2026-08-09
 
 ```bash
 Files:             1238
-Lines:            86700
-Identifiers:     123340
-Symbols:         964688
+Lines:            87773
+Identifiers:     123630
+Symbols:         964945
 Types:           748000
 Instantiations: 2719560
-Memory used:    676448K
-Memory allocs:  7349799
-Config time:     0.005s
-Parse time:      0.137s
-Bind time:       0.041s
-Check time:      2.543s
-Emit time:       0.001s
-Total time:      2.730s
+Memory used:    676812K
+Memory allocs:  7343004
+Config time:     0.004s
+Parse time:      0.115s
+Bind time:       0.053s
+Check time:      2.284s
+Emit time:       0.002s
+Total time:      2.470s
 ```
 
 Run on:
 
 ```bash
 CPU: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz (8 cores)
-Memory: 7237 MB
-OS: Linux 7.0.0-28-generic x64
+Memory: 7238 MB
+OS: Linux 7.0.0-29-generic x64
 Node: 24.18.1
 pnpm: 11.17.0
 ```

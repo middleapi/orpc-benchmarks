@@ -14,31 +14,31 @@ pnpm bench
 
 ## Latest Result
 
-oRPC 2.0.0-beta.22 - 2026-07-30
+oRPC 2.0.0-beta.26 - 2026-08-09
 
 ```bash
 Running 20s WebSocket test @ ws://127.0.0.1:3000
 10 connections
 
-Latency: avg=0.46 ms stdev=0.43 ms p50=0.43 ms p97.5=0.92 ms p99=1.10 ms max=81.30 ms
-Req/Sec: avg=21,595 stdev=2,891 min=14,349 max=24,118
+Latency: avg=0.41 ms stdev=0.41 ms p50=0.39 ms p97.5=0.81 ms p99=0.95 ms max=83.73 ms
+Req/Sec: avg=24,126 stdev=2,201 min=14,637 max=25,184
 
-431,894 requests in 20.00s
+482,511 requests in 20.00s
 ```
 
 Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
 
-- CPU usage: ~103% on average (max 455%)
-- Memory (RSS): 70 MB - 96 MB
-- Event loop delay: 0.02 ms on average (max 0.66 ms)
+- CPU usage: ~104% on average (max 367%)
+- Memory (RSS): 71 MB - 110 MB
+- Event loop delay: 0.02 ms on average (max 3.13 ms)
 - Detected issues: none
 
 Run on:
 
 ```bash
 CPU: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz (8 cores)
-Memory: 7237 MB
-OS: Linux 7.0.0-28-generic x64
+Memory: 7238 MB
+OS: Linux 7.0.0-29-generic x64
 Node: 24.18.1
 pnpm: 11.17.0
 ```
