@@ -39,7 +39,7 @@ Req/Bytes counts sampled once per second.
 371k requests in 20.05s, 102 MB read
 ```
 
-Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
+Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/rpc-orpc/.clinic/report.clinic-doctor.html)):
 
 - CPU usage: ~104% on average (max 486%)
 - Memory (RSS): 71 MB - 92 MB

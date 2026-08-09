@@ -39,7 +39,7 @@ Req/Bytes counts sampled once per second.
 339k requests in 20.01s, 84 MB read
 ```
 
-Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
+Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-hono/.clinic/report.clinic-doctor.html)):
 
 - CPU usage: ~103% on average (max 457%)
 - Memory (RSS): 71 MB - 95 MB

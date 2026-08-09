@@ -26,7 +26,7 @@ Req/Sec: avg=5,054 stdev=132 min=4,761 max=5,284
 101,073 requests in 20.00s
 ```
 
-Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html)):
+Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/ws-trpc/.clinic/report.clinic-doctor.html)):
 
 - CPU usage: ~41% on average (max 356%)
 - Memory (RSS): 67 MB - 75 MB
