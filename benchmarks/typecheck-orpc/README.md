@@ -12,23 +12,23 @@ pnpm bench
 
 ## Latest Result
 
-oRPC 2.0.0-beta.26, TypeScript 7.0.2 - 2026-08-09
+oRPC 2.0.0-beta.35, TypeScript 7.0.2 - 2026-09-10
 
 ```bash
 Files:             1316
-Lines:            46472
-Identifiers:      86527
-Symbols:         774643
-Types:           475166
-Instantiations: 2470731
-Memory used:    486854K
-Memory allocs:  5340338
-Config time:     0.014s
-Parse time:      0.108s
-Bind time:       0.033s
-Check time:      1.794s
-Emit time:       0.009s
-Total time:      1.964s
+Lines:            46574
+Identifiers:      86575
+Symbols:         764083
+Types:           451049
+Instantiations: 2198327
+Memory used:    468784K
+Memory allocs:  5072614
+Config time:     0.003s
+Parse time:      0.081s
+Bind time:       0.028s
+Check time:      1.545s
+Emit time:       0.002s
+Total time:      1.671s
 ```
 
 Run on:

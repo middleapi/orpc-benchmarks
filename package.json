@@ -10,9 +10,9 @@
   },
   "devDependencies": {
     "@hono/node-server": "^2.1.0",
-    "@orpc/client": "2.0.0-beta.26",
-    "@orpc/openapi": "2.0.0-beta.26",
-    "@orpc/server": "2.0.0-beta.26",
+    "@orpc/client": "2.0.0-beta.35",
+    "@orpc/openapi": "2.0.0-beta.35",
+    "@orpc/server": "2.0.0-beta.35",
     "@trpc/client": "11.18.0",
     "@trpc/server": "11.18.0",
     "@types/node": "^26.2.0",
@@ -27,5 +27,11 @@
     "typescript": "^7.0.2",
     "ws": "^8.21.3"
   },
-  "packageManager": "pnpm@11.17.0"
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^12.0.0",
+      "onFail": "download"
+    }
+  }
 }
