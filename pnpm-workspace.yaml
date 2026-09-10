@@ -6,16 +6,18 @@ allowBuilds:
   esbuild: false
 
 minimumReleaseAgeExclude:
-  - '@orpc/client@2.0.0-beta.22 || 2.0.0-beta.26'
-  - '@orpc/contract@2.0.0-beta.22 || 2.0.0-beta.26'
-  - '@orpc/json-schema@2.0.0-beta.22 || 2.0.0-beta.26'
-  - '@orpc/openapi@2.0.0-beta.22 || 2.0.0-beta.26'
-  - '@orpc/server@2.0.0-beta.22 || 2.0.0-beta.26'
-  - '@orpc/shared@2.0.0-beta.22 || 2.0.0-beta.26'
-  - "@standardserver/core@0.6.0"
-  - "@standardserver/fetch@0.6.0"
-  - "@standardserver/node@0.6.0"
-  - "@standardserver/peer@0.6.0"
-  - "@standardserver/shared@0.6.0"
+  - "@orpc/client@2.0.0-beta.35"
+  - "@orpc/contract@2.0.0-beta.35"
+  - "@orpc/json-schema@2.0.0-beta.35"
+  - "@orpc/openapi@2.0.0-beta.35"
+  - "@orpc/server@2.0.0-beta.35"
+  - "@orpc/shared@2.0.0-beta.35"
+  - "@standard-server/aws-lambda@0.9.0"
+  - "@standard-server/core@0.9.0"
+  - "@standard-server/fastify@0.9.0"
+  - "@standard-server/fetch@0.9.0"
+  - "@standard-server/node@0.9.0"
+  - "@standard-server/peer@0.9.0"
+  - "@standard-server/shared@0.9.0"
 
 shamefullyHoist: true

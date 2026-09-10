@@ -13,7 +13,7 @@ pnpm bench
 
 ## Latest Result
 
-oRPC 2.0.0-beta.26 - 2026-08-09
+oRPC 2.0.0-beta.35 - 2026-09-10
 
 ```bash
 Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
@@ -23,27 +23,27 @@ Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
 ┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
 │ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
 ├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
-│ Latency │ 0 ms │ 0 ms │ 1 ms  │ 1 ms │ 0.04 ms │ 0.22 ms │ 19 ms │
+│ Latency │ 0 ms │ 0 ms │ 1 ms  │ 1 ms │ 0.04 ms │ 0.23 ms │ 20 ms │
 └─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
-┌───────────┬─────────┬─────────┬─────────┬─────────┬─────────┬──────────┬─────────┐
-│ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg     │ Stdev    │ Min     │
-├───────────┼─────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┤
-│ Req/Sec   │ 10,135  │ 10,135  │ 18,319  │ 19,023  │ 17,871  │ 1,852.45 │ 10,128  │
-├───────────┼─────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┤
-│ Bytes/Sec │ 2.51 MB │ 2.51 MB │ 4.54 MB │ 4.72 MB │ 4.43 MB │ 460 kB   │ 2.51 MB │
-└───────────┴─────────┴─────────┴─────────┴─────────┴─────────┴──────────┴─────────┘
+┌───────────┬────────┬────────┬─────────┬─────────┬───────────┬──────────┬────────┐
+│ Stat      │ 1%     │ 2.5%   │ 50%     │ 97.5%   │ Avg       │ Stdev    │ Min    │
+├───────────┼────────┼────────┼─────────┼─────────┼───────────┼──────────┼────────┤
+│ Req/Sec   │ 12,895 │ 12,895 │ 18,895  │ 19,439  │ 18,014.41 │ 1,897.86 │ 12,895 │
+├───────────┼────────┼────────┼─────────┼─────────┼───────────┼──────────┼────────┤
+│ Bytes/Sec │ 3.2 MB │ 3.2 MB │ 4.69 MB │ 4.82 MB │ 4.47 MB   │ 470 kB   │ 3.2 MB │
+└───────────┴────────┴────────┴─────────┴─────────┴───────────┴──────────┴────────┘
 
 Req/Bytes counts sampled once per second.
 # of samples: 20
 
-357k requests in 20.01s, 88.6 MB read
+360k requests in 20.01s, 89.3 MB read
 ```
 
 Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-orpc/.clinic/report.clinic-doctor.html)):
 
-- CPU usage: ~104% on average (max 473%)
-- Memory (RSS): 71 MB - 92 MB
-- Event loop delay: 0.05 ms on average (max 1.32 ms)
+- CPU usage: ~104% on average (max 484%)
+- Memory (RSS): 73 MB - 92 MB
+- Event loop delay: 0.05 ms on average (max 4.11 ms)
 - Detected issues: none
 
 Run on:
