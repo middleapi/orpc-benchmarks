@@ -14,23 +14,23 @@ pnpm bench
 
 ## Latest Result
 
-oRPC 2.0.0-beta.26 - 2026-08-09
+oRPC 2.0.0-beta.35 - 2026-09-10
 
 ```bash
 Running 20s WebSocket test @ ws://127.0.0.1:3000
 10 connections
 
-Latency: avg=0.41 ms stdev=0.41 ms p50=0.39 ms p97.5=0.81 ms p99=0.95 ms max=83.73 ms
-Req/Sec: avg=24,126 stdev=2,201 min=14,637 max=25,184
+Latency: avg=0.42 ms stdev=0.40 ms p50=0.39 ms p97.5=0.74 ms p99=0.92 ms max=82.31 ms
+Req/Sec: avg=23,815 stdev=2,114 min=14,877 max=25,131
 
-482,511 requests in 20.00s
+476,295 requests in 20.00s
 ```
 
 Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/ws-orpc/.clinic/report.clinic-doctor.html)):
 
-- CPU usage: ~104% on average (max 367%)
-- Memory (RSS): 71 MB - 110 MB
-- Event loop delay: 0.02 ms on average (max 3.13 ms)
+- CPU usage: ~104% on average (max 421%)
+- Memory (RSS): 71 MB - 109 MB
+- Event loop delay: 0.03 ms on average (max 1.90 ms)
 - Detected issues: none
 
 Run on:
