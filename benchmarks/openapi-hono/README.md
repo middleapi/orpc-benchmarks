@@ -13,7 +13,7 @@ pnpm bench
 
 ## Latest Result
 
-Hono 4.13.1 - 2026-08-09
+Hono 4.13.8 - 2026-09-19
 
 ```bash
 Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
@@ -23,27 +23,27 @@ Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
 ┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
 │ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
 ├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
-│ Latency │ 0 ms │ 0 ms │ 1 ms  │ 1 ms │ 0.06 ms │ 0.28 ms │ 29 ms │
+│ Latency │ 0 ms │ 0 ms │ 0 ms  │ 1 ms │ 0.03 ms │ 0.19 ms │ 21 ms │
 └─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
-┌───────────┬─────────┬─────────┬────────┬─────────┬──────────┬──────────┬─────────┐
-│ Stat      │ 1%      │ 2.5%    │ 50%    │ 97.5%   │ Avg      │ Stdev    │ Min     │
-├───────────┼─────────┼─────────┼────────┼─────────┼──────────┼──────────┼─────────┤
-│ Req/Sec   │ 10,735  │ 10,735  │ 17,343 │ 17,567  │ 16,932.2 │ 1,446.56 │ 10,734  │
-├───────────┼─────────┼─────────┼────────┼─────────┼──────────┼──────────┼─────────┤
-│ Bytes/Sec │ 2.66 MB │ 2.66 MB │ 4.3 MB │ 4.36 MB │ 4.2 MB   │ 359 kB   │ 2.66 MB │
-└───────────┴─────────┴─────────┴────────┴─────────┴──────────┴──────────┴─────────┘
+┌───────────┬─────────┬─────────┬─────────┬─────────┬──────────┬──────────┬────────┐
+│ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg      │ Stdev    │ Min    │
+├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼──────────┼────────┤
+│ Req/Sec   │ 13,327  │ 13,327  │ 19,167  │ 19,455  │ 18,693.8 │ 1,334.07 │ 13,322 │
+├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼──────────┼────────┤
+│ Bytes/Sec │ 3.31 MB │ 3.31 MB │ 4.76 MB │ 4.83 MB │ 4.64 MB  │ 331 kB   │ 3.3 MB │
+└───────────┴─────────┴─────────┴─────────┴─────────┴──────────┴──────────┴────────┘
 
 Req/Bytes counts sampled once per second.
 # of samples: 20
 
-339k requests in 20.01s, 84 MB read
+374k requests in 20.01s, 92.7 MB read
 ```
 
 Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-hono/.clinic/report.clinic-doctor.html)):
 
-- CPU usage: ~103% on average (max 457%)
-- Memory (RSS): 71 MB - 95 MB
-- Event loop delay: 0.07 ms on average (max 3.41 ms)
+- CPU usage: ~103% on average (max 475%)
+- Memory (RSS): 77 MB - 95 MB
+- Event loop delay: 0.05 ms on average (max 2.65 ms)
 - Detected issues: none
 
 Run on:

@@ -14,23 +14,23 @@ pnpm bench
 
 ## Latest Result
 
-tRPC 11.18.0 - 2026-08-09
+tRPC 11.19.0 - 2026-09-19
 
 ```bash
 Running 20s WebSocket test @ ws://127.0.0.1:3000
 10 connections
 
-Latency: avg=1.98 ms stdev=0.65 ms p50=1.97 ms p97.5=2.93 ms p99=3.32 ms max=50.14 ms
-Req/Sec: avg=5,054 stdev=132 min=4,761 max=5,284
+Latency: avg=1.91 ms stdev=0.72 ms p50=1.95 ms p97.5=2.85 ms p99=3.03 ms max=59.09 ms
+Req/Sec: avg=5,228 stdev=164 min=4,894 max=5,465
 
-101,073 requests in 20.00s
+104,559 requests in 20.00s
 ```
 
 Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/ws-trpc/.clinic/report.clinic-doctor.html)):
 
-- CPU usage: ~41% on average (max 356%)
-- Memory (RSS): 67 MB - 75 MB
-- Event loop delay: 0.17 ms on average (max 2.34 ms)
+- CPU usage: ~40% on average (max 319%)
+- Memory (RSS): 68 MB - 77 MB
+- Event loop delay: 0.07 ms on average (max 1.31 ms)
 - Detected issues: cpu: performance
 
 Run on:
