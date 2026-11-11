@@ -30,7 +30,7 @@ Hono 4.13.17 — 2026-11-11 (hono@4.13.17, @hono/node-server@2.1.6)
 <details>
 <summary>Per-round results, request and response</summary>
 
-Drift is the throughput change from the first to the second half of the measurement window; a clearly positive value means the server was still warming up.
+Drift is the throughput change from the first to the second half of the measurement window. A server still warming up shows a positive drift in nearly every round; single rounds vary with machine noise.
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |

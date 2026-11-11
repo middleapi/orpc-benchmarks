@@ -30,7 +30,7 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/openapi@2.0
 <details>
 <summary>Per-round results, request and response</summary>
 
-Drift is the throughput change from the first to the second half of the measurement window; a clearly positive value means the server was still warming up.
+Drift is the throughput change from the first to the second half of the measurement window. A server still warming up shows a positive drift in nearly every round; single rounds vary with machine noise.
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
@@ -69,6 +69,8 @@ Compared with the rest of the `openapi` group, measured in the same session:
 | [Hono](../openapi-hono)     | 4.13.17       | **24,747** req/s | 1.06× slower (within noise) |   22,208 – 27,061 |     0.37 ms |     0.92 ms |          39.9 µs |   93 MiB |
 
 <sub>Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
+
+> ⚠ openapi-hono: throughput was still rising during the measurement (+3.6% from the first to the second half, median) — try a longer --warmup
 
 Clinic.js Doctor profile under the same load, generated with `pnpm bench:profile` ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-orpc/.clinic/report.clinic-doctor.html)). The profiler slows the server down, so use it to compare behaviour, not throughput:
 

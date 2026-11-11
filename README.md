@@ -31,7 +31,7 @@ The runner ([scripts/bench.ts](./scripts/bench.ts)) is built to make numbers com
 
 - **Pinned toolchain.** pnpm and Node.js versions are pinned through `devEngines` in [package.json](./package.json), so `pnpm bench` always runs on the same Node.js/V8 build, which is downloaded if needed.
 - **Isolated CPUs.** On Linux, the server under test runs alone on a dedicated CPU and the load generator on two others (`taskset`), with the first CPU left to the OS, so they never compete for CPU time and the numbers are single-core server throughput. The layout follows the SMT (Hyper-Threading) topology: the server's sibling hardware thread is kept idle and the load generator runs on other physical cores; when the machine has too few cores for that, the runner warns and saves the warning with the results. CPU steal time is recorded to expose noisy neighbours on virtual machines.
-- **Fresh process, warm-up, measurement.** Every round starts a new server process, warms it up under full load, then measures for 10 s with the load still running, so there is no ramp-up or ramp-down inside the measurement window. Each round also compares the two halves of its measurement window (the drift in the per-round tables) and warns when throughput was still rising. Per-second throughput curves of fresh processes show oRPC and Hono at full speed within about 3 s and tRPC within about 6–7 s, so the default warm-up is 10 s. With 10 s, the drift check still found tRPC's WebSocket server a few percent faster in the second half of the window (+4.8% median), so the `ws` group warms up for 30 s; that removed the drift, and the comparison moved by less than the round-to-round noise.
+- **Fresh process, warm-up, measurement.** Every round starts a new server process, warms it up under full load, then measures for 10 s with the load still running, so there is no ramp-up or ramp-down inside the measurement window. Each round also compares the two halves of its measurement window (the drift in the per-round tables), and the runner warns when throughput was still rising: by more than 3% at the median, in at least 3 rounds out of 4, since a single round's drift varies with machine noise. Per-second throughput curves of fresh processes show oRPC and Hono at full speed within about 3 s and tRPC within about 6–7 s, so the default warm-up is 10 s. With 10 s, the drift check still found tRPC's WebSocket server a few percent faster in the second half of the window (+4.8% median, rising in 8 of 10 rounds), so the `ws` group warms up for 30 s; that removed the drift, and the comparison moved by less than the round-to-round noise.
 - **Many interleaved rounds.** 10 rounds per server benchmark and 30 per type-check, alternating the order between libraries (A B, B A, …) so slow drift of the machine affects all of them alike. Results are medians, with the min – max range across rounds; differences whose ranges overlap are flagged as within noise.
 - **Real client payloads.** For the `rpc` and `ws` groups, the payload is captured at the start of each run from the library's official client (`scripts/client.ts` in each benchmark), so the load always matches what the installed client version sends; that call also checks the end-to-end result, including revived `Date`s. The `openapi` group sends the same REST request to both libraries.
 - **Strict response checks.** Under load, every request must be answered, and every response is checked for its status code, framing and content. A run with any invalid response, unanswered request or connection error is rejected instead of reported, so a server answering with errors or dropping requests can never look fast.
@@ -39,7 +39,7 @@ The runner ([scripts/bench.ts](./scripts/bench.ts)) is built to make numbers com
 - **Server cost, not just speed.** Server CPU time per request and RSS are read from `/proc` without instrumenting the server. The runner warns when the server is not saturated or when the load generator gets close to its own limit, either of which would make the throughput number meaningless.
 - **WebSocket load without client-side delays.** The `ws` group replays the official clients' frames over plain WebSocket connections. Driving the load through the official clients measured the clients instead: tRPC's WebSocket client waits a timer tick (at least 1 ms) before sending each batch, so with one request in flight per connection the tRPC server sat idle most of the time.
 - **Profiling separate from measuring.** [Clinic.js Doctor](https://clinicjs.org/doctor/) reports come from `pnpm bench:profile`, under the same payload and load; benchmark numbers are always measured without a profiler attached.
-- **Type-checking.** Both generated projects declare every input with the same vendored [Standard Schema](https://github.com/standard-schema/standard-schema) interface ([schema.ts](./benchmarks/typecheck-orpc/src/schema.ts), copied from `@standard-schema/spec` just as Zod and ArkType ship it), so neither library is handed its own declaration, which TypeScript would match faster, and no schema library's types dilute the comparison. A guard file in each project must produce type errors for wrong inputs and outputs, so a library cannot look fast by inferring `any`. `tsc` runs single-threaded (`--singleThreaded`) on the dedicated server CPU: by default TypeScript 7 runs 4 checkers in parallel, whatever the number of cores, and each rebuilds the shared router and client types, so time, type counts and memory would depend on that setting rather than measure each library's type work once. The projects are type-checked once to warm the file cache, then 30 times per library, interleaved: a round takes only a few seconds, but type-checking times vary more from run to run (about 10%, CPU time included) than server throughput. Times come from `tsc --extendedDiagnostics`; type and instantiation counts are deterministic and can be compared across machines.
+- **Type-checking.** Both generated projects declare every input with the same vendored [Standard Schema](https://github.com/standard-schema/standard-schema) interface ([schema.ts](./benchmarks/typecheck-orpc/src/schema.ts), copied from `@standard-schema/spec` just as Zod and ArkType ship it), so neither library is handed its own declaration, which TypeScript would match faster, and no schema library's types dilute the comparison. A guard file in each project ([checks.ts](./benchmarks/typecheck-orpc/src/checks.ts)) must produce type errors for wrong inputs and outputs, so a library cannot look fast by inferring `any`. `tsc` runs single-threaded (`--singleThreaded`) on the dedicated server CPU: by default TypeScript 7 runs 4 checkers in parallel, whatever the number of cores, and each rebuilds the shared router and client types, so time, type counts and memory would depend on that setting rather than measure each library's type work once. The projects are type-checked once to warm the file cache, then 30 times per library, interleaved: a round takes only a few seconds, and its time varies by about 10% from round to round (CPU time included), so the extra rounds keep the median stable. Times come from `tsc --extendedDiagnostics`; type and instantiation counts are deterministic and can be compared across machines.
 
 ## Latest results
 
@@ -103,27 +103,19 @@ Workload: `GET /nested/procedure_1?who=hello%20world`; the JSON response carries
 
 ### `typecheck` — Type-checking
 
-Workload: `tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client call for each.
+Workload: `tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client call for each, every input declared with the same Standard Schema interface.
 
-| Library                             | Version       |  Check time | Relative     | Range (min – max) | Total time |   Types | Instantiations | Memory used |
-| :---------------------------------- | :------------ | ----------: | :----------- | ----------------: | ---------: | ------: | -------------: | ----------: |
-| [oRPC](./benchmarks/typecheck-orpc) | 2.0.0-beta.50 | **1.905 s** | fastest      | 1.663 s – 2.088 s |    2.083 s | 451,042 |      2,198,304 |     459 MiB |
-| [tRPC](./benchmarks/typecheck-trpc) | 11.28.0       | **2.881 s** | 1.51× slower | 2.755 s – 3.194 s |    3.071 s | 760,156 |      2,827,804 |     652 MiB |
+| Library                             | Version       |  Check time | Relative                    | Range (min – max) | Total time |   Types | Instantiations | Memory used |
+| :---------------------------------- | :------------ | ----------: | :-------------------------- | ----------------: | ---------: | ------: | -------------: | ----------: |
+| [oRPC](./benchmarks/typecheck-orpc) | 2.0.0-beta.50 | **2.125 s** | fastest                     | 1.799 s – 2.737 s |    2.391 s | 247,841 |      1,040,001 |     268 MiB |
+| [tRPC](./benchmarks/typecheck-trpc) | 11.28.0       | **2.288 s** | 1.08× slower (within noise) | 1.826 s – 2.986 s |    2.502 s | 227,281 |      1,086,257 |     227 MiB |
 
-<sub>2026-11-11 · TypeScript 7.0.2 · median of 10 rounds (run order alternated); `tsc` pinned to CPUs 1-3.</sub>
+<sub>2026-11-11 · TypeScript 7.0.2, `tsc --singleThreaded` · median of 30 rounds (run order alternated); `tsc` pinned to CPU 3.</sub>
 
 Run on:
 
 ```
 CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 CPUs, no SMT, KVM VM)
-Memory: 16086 MB
-OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
-Node: v26.13.0 (V8 14.6.202.34-node.40)
-pnpm: 12.18.0
-```
-
-```
-CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 cores, KVM VM)
 Memory: 16086 MB
 OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
 Node: v26.13.0 (V8 14.6.202.34-node.40)

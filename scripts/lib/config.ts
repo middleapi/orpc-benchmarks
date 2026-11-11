@@ -117,8 +117,8 @@ export const groups: Group[] = [
     id: "typecheck",
     kind: "typecheck",
     title: "Type-checking",
-    // A round takes a few seconds, but its time varies more from run to run than the servers'
-    // throughput (about 10% vs 3%, CPU time included), so more rounds keep the median stable.
+    // A round takes a few seconds, and its time varies by about 10% from round to round (CPU time
+    // included, so not only scheduling noise), so more rounds keep the median stable.
     rounds: 30,
     workload:
       "`tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client call for each, every input declared with the same Standard Schema interface",
