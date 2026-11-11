@@ -21,10 +21,10 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/client@2.0.
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **22,863 req/s** (median; rounds 21,733 – 25,864, CV 6.2%)             |
-| Latency       | p50 0.40 ms · p90 0.67 ms · p99 0.94 ms · p99.9 1.93 ms · mean 0.44 ms |
-| Server CPU    | 43.2 µs per request (99% of one core)                                  |
-| Server memory | 86 MiB peak RSS (86 MiB average under load)                            |
+| Throughput    | **25,745 req/s** (median; rounds 23,942 – 28,298, CV 6.0%)             |
+| Latency       | p50 0.35 ms · p90 0.57 ms · p99 0.90 ms · p99.9 1.99 ms · mean 0.39 ms |
+| Server CPU    | 38.4 µs per request (98% of one core)                                  |
+| Server memory | 87 MiB peak RSS (86 MiB average under load)                            |
 
 <details>
 <summary>Per-round results, request and response</summary>
@@ -33,16 +33,16 @@ Drift: throughput change from the first to the second half of the measurement wi
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 22,744 |  +0.5% | 0.41 ms | 0.93 ms | 4.18 ms |        99% |   43.6 µs |   87 MiB |  0.4% |          38% |
-|     2 | 21,733 | +11.7% | 0.43 ms | 0.95 ms | 5.08 ms |        99% |   45.5 µs |   86 MiB |  0.6% |          36% |
-|     3 | 22,391 |  +4.3% | 0.41 ms | 0.94 ms | 6.57 ms |        99% |   44.1 µs |   86 MiB |  0.6% |          36% |
-|     4 | 25,098 | +29.7% | 0.39 ms | 0.85 ms | 4.81 ms |        99% |   39.6 µs |   88 MiB |  0.3% |          39% |
-|     5 | 21,944 | +11.7% | 0.42 ms | 0.95 ms | 6.91 ms |        99% |   45.1 µs |   86 MiB |  0.4% |          36% |
-|     6 | 24,342 | +14.3% | 0.38 ms | 1.00 ms | 8.91 ms |        99% |   40.7 µs |   84 MiB |  0.4% |          37% |
-|     7 | 25,864 |  +1.2% | 0.34 ms | 0.94 ms | 5.18 ms |        99% |   38.1 µs |   84 MiB |  0.6% |          40% |
-|     8 | 22,983 |  -1.6% | 0.40 ms | 0.93 ms | 12.9 ms |        98% |   42.8 µs |   85 MiB |  0.7% |          36% |
-|     9 | 21,902 | +10.2% | 0.41 ms | 1.02 ms | 8.68 ms |        98% |   44.8 µs |   86 MiB |  0.6% |          37% |
-|    10 | 23,946 | +14.1% | 0.40 ms | 0.91 ms | 5.00 ms |        99% |   41.3 µs |   81 MiB |  0.6% |          38% |
+|     1 | 24,365 |  +8.6% | 0.39 ms | 0.97 ms | 7.31 ms |        98% |   40.3 µs |   87 MiB |  1.0% |          38% |
+|     2 | 23,942 | +13.3% | 0.40 ms | 0.96 ms | 8.15 ms |        98% |   41.1 µs |   87 MiB |  0.6% |          38% |
+|     3 | 24,159 | +11.1% | 0.39 ms | 0.94 ms | 7.75 ms |        98% |   40.5 µs |   86 MiB |  1.3% |          36% |
+|     4 | 27,409 |  -1.2% | 0.30 ms | 0.88 ms | 11.6 ms |        98% |   35.7 µs |   87 MiB |  1.6% |          40% |
+|     5 | 25,157 |  -1.6% | 0.36 ms | 0.92 ms | 5.06 ms |        99% |   39.4 µs |   86 MiB |  0.5% |          38% |
+|     6 | 25,335 |  -0.8% | 0.37 ms | 0.90 ms | 5.01 ms |        99% |   39.1 µs |   87 MiB |  0.5% |          37% |
+|     7 | 27,659 | +19.5% | 0.30 ms | 0.86 ms | 5.30 ms |        99% |   35.8 µs |   87 MiB |  0.4% |          39% |
+|     8 | 28,298 |  +2.9% | 0.30 ms | 0.85 ms | 6.35 ms |        98% |   34.8 µs |   86 MiB |  0.8% |          40% |
+|     9 | 26,154 |  +5.3% | 0.33 ms | 0.88 ms | 8.27 ms |        99% |   37.7 µs |   89 MiB |  0.7% |          38% |
+|    10 | 26,250 |  -5.7% | 0.32 ms | 0.91 ms | 5.30 ms |        98% |   37.3 µs |   86 MiB |  1.3% |          40% |
 
 Request (plus a `host` header):
 
@@ -55,7 +55,7 @@ accept: */*
 Response:
 
 ```
-{"json":{"name":"nested/procedure_1","date":"2026-11-11T15:10:27.885Z","input":"hello world"},"meta":[["date","date"]]}
+{"json":{"name":"nested/procedure_1","date":"2026-11-11T16:02:38.907Z","input":"hello world"},"meta":[["date","date"]]}
 ```
 
 </details>
@@ -64,14 +64,10 @@ The whole `rpc` group, measured in the same session:
 
 | Library                 | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :---------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [**oRPC**](../rpc-orpc) | 2.0.0-beta.50 | **22,863 req/s** | fastest      |   21,733 – 25,864 |     0.40 ms |     0.94 ms |          43.2 µs |   86 MiB |
-| [tRPC](../rpc-trpc)     | 11.28.0       |  **5,171 req/s** | 4.42× slower |     4,073 – 6,901 |     1.68 ms |     6.04 ms |         192.6 µs |  196 MiB |
+| [**oRPC**](../rpc-orpc) | 2.0.0-beta.50 | **25,745 req/s** | fastest      |   23,942 – 28,298 |     0.35 ms |     0.90 ms |          38.4 µs |   87 MiB |
+| [tRPC](../rpc-trpc)     | 11.28.0       |  **6,153 req/s** | 4.18× slower |     5,436 – 7,545 |     1.29 ms |     7.45 ms |         160.9 µs |  205 MiB |
 
 <sub>Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
-
-> [!WARNING]
->
-> - rpc-orpc: throughput still rising in 9 of 10 rounds (median drift +10.9%) — try a longer --warmup
 
 Clinic.js Doctor profile from `pnpm bench:profile`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/rpc-orpc/.clinic/report.clinic-doctor.html)); it is a single round, so compare behaviour, not throughput:
 

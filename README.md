@@ -42,7 +42,7 @@ The runner ([scripts/bench.ts](./scripts/bench.ts)):
 
 ## Latest results
 
-Produced with `pnpm bench` (default settings), then `pnpm bench:profile`, in one session on a 4-vCPU cloud VM, with every other process, the unbound kernel workqueues and movable IRQs moved to CPU 0, so CPUs 1–3 ran only the benchmark. Absolute numbers on this VM drifted by up to 20% over a day at about 1% steal; the ratios within each group held.
+Produced with `pnpm bench` and `pnpm bench:profile` (default settings) on a 4-vCPU cloud VM, with every other process, the unbound kernel workqueues and movable IRQs moved to CPU 0, so CPUs 1–3 ran only the benchmark. Over that day, throughput on this VM varied by up to 37% at about 1% steal, and the `rpc` ratio ranged from 3.6× to 4.4×: only compare results from the same run.
 
 <details>
 <summary>CPU isolation commands (optional, Linux; all but the last line as root)</summary>
@@ -70,14 +70,10 @@ Workload: `GET nested.procedure_1("hello world")` as encoded by the official cli
 
 | Library                       | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :---------------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **22,863 req/s** | fastest      |   21,733 – 25,864 |     0.40 ms |     0.94 ms |          43.2 µs |   86 MiB |
-| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **5,171 req/s** | 4.42× slower |     4,073 – 6,901 |     1.68 ms |     6.04 ms |         192.6 µs |  196 MiB |
+| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **25,745 req/s** | fastest      |   23,942 – 28,298 |     0.35 ms |     0.90 ms |          38.4 µs |   87 MiB |
+| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **6,153 req/s** | 4.18× slower |     5,436 – 7,545 |     1.29 ms |     7.45 ms |         160.9 µs |  205 MiB |
 
 <sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
-
-> [!WARNING]
->
-> - rpc-orpc: throughput still rising in 9 of 10 rounds (median drift +10.9%) — try a longer --warmup
 
 ### `ws` — RPC over WebSocket
 
