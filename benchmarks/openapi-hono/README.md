@@ -22,10 +22,10 @@ Hono 4.13.17 — 2026-11-11 (hono@4.13.17, @hono/node-server@2.1.6)
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **24,747 req/s** (median; rounds range 22,208 – 27,061, CV 5.6%)       |
-| Latency       | p50 0.37 ms · p90 0.59 ms · p99 0.92 ms · p99.9 1.81 ms · mean 0.40 ms |
-| Server CPU    | 39.9 µs per request (99% of one core used)                             |
-| Server memory | 93 MiB peak RSS (90 MiB average while under load)                      |
+| Throughput    | **23,780 req/s** (median; rounds range 21,736 – 25,906, CV 4.6%)       |
+| Latency       | p50 0.39 ms · p90 0.61 ms · p99 0.98 ms · p99.9 2.28 ms · mean 0.42 ms |
+| Server CPU    | 41.5 µs per request (99% of one core used)                             |
+| Server memory | 91 MiB peak RSS (88 MiB average while under load)                      |
 
 <details>
 <summary>Per-round results, request and response</summary>
@@ -34,16 +34,16 @@ Drift is the throughput change from the first to the second half of the measurem
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 24,002 | +15.2% | 0.38 ms | 0.98 ms | 13.8 ms |        98% |   40.7 µs |   89 MiB |  1.5% |          37% |
-|     2 | 23,632 |  -7.5% | 0.40 ms | 0.97 ms | 6.98 ms |        98% |   41.5 µs |   92 MiB |  1.3% |          36% |
-|     3 | 24,897 | +10.0% | 0.36 ms | 0.92 ms | 12.2 ms |        98% |   39.6 µs |   94 MiB |  0.7% |          37% |
-|     4 | 27,061 |  -2.1% | 0.31 ms | 0.86 ms | 9.73 ms |        99% |   36.5 µs |   95 MiB |  0.7% |          41% |
-|     5 | 24,437 |  -1.4% | 0.38 ms | 0.92 ms | 8.58 ms |        99% |   40.4 µs |   94 MiB |  0.8% |          38% |
-|     6 | 25,091 |  -3.6% | 0.37 ms | 0.89 ms | 15.7 ms |        99% |   39.5 µs |   90 MiB |  0.7% |          39% |
-|     7 | 25,130 |  +7.0% | 0.34 ms | 0.94 ms | 11.5 ms |        98% |   39.2 µs |   90 MiB |  1.0% |          39% |
-|     8 | 26,558 |  +1.8% | 0.32 ms | 0.88 ms | 11.0 ms |        99% |   37.2 µs |   93 MiB |  0.7% |          41% |
-|     9 | 22,208 |  +5.5% | 0.42 ms | 0.97 ms | 7.65 ms |        98% |   44.1 µs |   93 MiB |  1.4% |          35% |
-|    10 | 24,597 | +13.4% | 0.38 ms | 0.91 ms | 5.21 ms |        99% |   40.3 µs |   91 MiB |  0.4% |          37% |
+|     1 | 23,613 | +11.5% | 0.39 ms | 0.98 ms | 7.75 ms |        98% |   41.6 µs |   90 MiB |  0.8% |          36% |
+|     2 | 23,004 |  -4.8% | 0.42 ms | 0.97 ms | 5.67 ms |        99% |   42.9 µs |   91 MiB |  0.9% |          36% |
+|     3 | 23,804 |  -5.7% | 0.39 ms | 0.98 ms | 5.53 ms |        99% |   41.5 µs |   93 MiB |  0.5% |          35% |
+|     4 | 21,736 | +10.0% | 0.43 ms | 1.04 ms | 5.12 ms |        99% |   45.5 µs |   87 MiB |  0.4% |          34% |
+|     5 | 23,887 |  +5.6% | 0.40 ms | 0.92 ms | 7.59 ms |        99% |   41.4 µs |   92 MiB |  0.5% |          34% |
+|     6 | 24,262 |  -7.1% | 0.39 ms | 0.92 ms | 7.77 ms |        98% |   40.5 µs |   90 MiB |  1.3% |          38% |
+|     7 | 22,738 | -17.5% | 0.40 ms | 1.03 ms | 5.06 ms |        98% |   43.3 µs |   90 MiB |  0.6% |          34% |
+|     8 | 25,906 |  -1.9% | 0.32 ms | 0.98 ms | 7.21 ms |        98% |   37.9 µs |   91 MiB |  1.3% |          38% |
+|     9 | 24,287 |  -8.6% | 0.39 ms | 0.91 ms | 4.83 ms |        99% |   40.6 µs |   89 MiB |  0.6% |          37% |
+|    10 | 23,757 | +11.3% | 0.39 ms | 0.98 ms | 7.40 ms |        98% |   41.3 µs |   92 MiB |  1.1% |          37% |
 
 Request sent by the load generator (plus a `Host` header):
 
@@ -56,21 +56,19 @@ Accept: */*
 Response:
 
 ```
-{"name":"nested/procedure_1","date":"2026-11-11T06:54:47.561Z","input":{"who":"hello world"}}
+{"name":"nested/procedure_1","date":"2026-11-11T07:04:55.230Z","input":{"who":"hello world"}}
 ```
 
 </details>
 
 Compared with the rest of the `openapi` group, measured in the same session:
 
-| Library                     | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
-| :-------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](../openapi-orpc)     | 2.0.0-beta.50 | **26,205** req/s | fastest                     |   24,028 – 28,456 |     0.36 ms |     0.87 ms |          37.7 µs |   86 MiB |
-| [**Hono**](../openapi-hono) | 4.13.17       | **24,747** req/s | 1.06× slower (within noise) |   22,208 – 27,061 |     0.37 ms |     0.92 ms |          39.9 µs |   93 MiB |
+| Library                     | Version       |       Throughput | Relative             | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
+| :-------------------------- | :------------ | ---------------: | :------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
+| [oRPC](../openapi-orpc)     | 2.0.0-beta.50 | **23,874** req/s | fastest              |   21,934 – 27,009 |     0.40 ms |     0.92 ms |          41.2 µs |   87 MiB |
+| [**Hono**](../openapi-hono) | 4.13.17       | **23,780** req/s | 1.00× (within noise) |   21,736 – 25,906 |     0.39 ms |     0.98 ms |          41.5 µs |   91 MiB |
 
 <sub>Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
-
-> ⚠ openapi-hono: throughput was still rising during the measurement (+3.6% from the first to the second half, median) — try a longer --warmup
 
 Clinic.js Doctor profile under the same load, generated with `pnpm bench:profile` ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-hono/.clinic/report.clinic-doctor.html)). The profiler slows the server down, so use it to compare behaviour, not throughput:
 

@@ -32,7 +32,8 @@ function relative(value: Spread, best: Spread, higherIsBetter: boolean): string 
   if (value === best) return "fastest";
   const factor = higherIsBetter ? best.median / value.median : value.median / best.median;
   const overlaps = higherIsBetter ? value.max >= best.min : value.min <= best.max;
-  return `${factor.toFixed(2)}× slower${overlaps ? " (within noise)" : ""}`;
+  const slower = factor.toFixed(2) === "1.00" ? "" : " slower";
+  return `${factor.toFixed(2)}×${slower}${overlaps ? " (within noise)" : ""}`;
 }
 
 function bestOf<T>(items: T[], score: (item: T) => number): T {
