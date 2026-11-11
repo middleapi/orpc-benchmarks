@@ -350,7 +350,7 @@ function typecheckDetails(b: TypecheckBenchmarkResult): string {
       "Per-round results and full diagnostics",
       rounds,
       "",
-      "Median `--extendedDiagnostics` output:",
+      "Median of each `--extendedDiagnostics` value:",
       "",
       fence(diagnostics),
       "",
@@ -401,9 +401,9 @@ function clinicSection(root: string, name: string): string | undefined {
   const link = `benchmarks/${name}/.clinic/report.clinic-doctor.html`;
 
   return [
-    `Clinic.js Doctor profile from \`pnpm bench:profile\`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/${link})); the profiler slows the server, so compare behaviour, not throughput:`,
+    `Clinic.js Doctor profile from \`pnpm bench:profile\`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/${link})); it is a single round, so compare behaviour, not throughput:`,
     "",
-    `- CPU usage: ${pct(mean(cpu))} on average (max ${pct(Math.max(...cpu))})`,
+    `- CPU usage: ${pct(mean(cpu))} on average`,
     `- Memory (RSS): ${mib(Math.min(...rss))} – ${mib(Math.max(...rss))}`,
     `- Event loop delay: ${ms(mean(delay))} on average (max ${ms(Math.max(...delay))})`,
     `- Detected issues: ${issues.length ? issues.join(", ") : "none"}`,

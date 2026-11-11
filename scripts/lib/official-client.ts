@@ -1,8 +1,9 @@
 /**
  * Helpers for `benchmarks/<name>/scripts/client.ts`: each of those scripts calls the server once
- * (twice for WebSocket) through the library's official client and prints what went over the wire.
- * The runner replays exactly that payload under load, so the benchmark always uses what a real
- * client of the installed version sends, and the call doubles as an end-to-end correctness check.
+ * (twice for WebSocket) through the library's official client and prints the request (method, URL,
+ * the library's own headers, body) or frames it sent. The runner replays them under load, so the
+ * benchmark always uses the installed version's encoding, and the call doubles as an end-to-end
+ * correctness check.
  */
 
 export interface CapturedRequest {

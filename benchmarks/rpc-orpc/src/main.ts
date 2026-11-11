@@ -59,7 +59,6 @@ const server = createServer(async (req, res) => {
 const port = Number(process.env.PORT ?? 3000);
 
 server.listen(port, "127.0.0.1", () => {
-  // eslint-disable-next-line no-console
   console.log(
     `Listening on http://127.0.0.1:${port}/nested/procedure_1?data=%7B%22json%22%3A%22hello+world%22%7D`,
   );

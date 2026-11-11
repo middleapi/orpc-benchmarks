@@ -102,6 +102,10 @@ if (options["report-only"]) {
 }
 
 if (process.platform === "win32") throw new Error("Run the benchmarks on Linux, WSL or macOS");
+const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+const NODE = pkg.devEngines.runtime.version;
+if (process.version !== `v${NODE}`)
+  throw new Error(`Node.js ${process.version} is not the pinned ${NODE}: run through pnpm`);
 
 function positiveInt(name: string, value: string): number {
   const parsed = Number(value);

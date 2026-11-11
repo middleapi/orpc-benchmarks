@@ -67,9 +67,9 @@ The whole `ws` group, measured in the same session:
 
 <sub>Median of 10 rounds (fresh server each, order alternated) · 10 connections · 30 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
-Clinic.js Doctor profile from `pnpm bench:profile`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/ws-trpc/.clinic/report.clinic-doctor.html)); the profiler slows the server, so compare behaviour, not throughput:
+Clinic.js Doctor profile from `pnpm bench:profile`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/ws-trpc/.clinic/report.clinic-doctor.html)); it is a single round, so compare behaviour, not throughput:
 
-- CPU usage: 98% on average (max 104%)
+- CPU usage: 98% on average
 - Memory (RSS): 76 MiB – 96 MiB
 - Event loop delay: 0.07 ms on average (max 5.99 ms)
 - Detected issues: event loop utilization (performance; expected: the load keeps the server saturated)

@@ -62,7 +62,7 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/client@2.0.
 |    29 |    2.621 s |    2.910 s |   3.802 s |
 |    30 |    2.400 s |    2.746 s |   3.460 s |
 
-Median `--extendedDiagnostics` output:
+Median of each `--extendedDiagnostics` value:
 
 ```
 Files:                 1,421

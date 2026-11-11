@@ -43,6 +43,5 @@ const app = new Hono()
 const port = Number(process.env.PORT ?? 3000);
 
 serve({ fetch: app.fetch, port, hostname: "127.0.0.1" }, () => {
-  // eslint-disable-next-line no-console
   console.log(`Listening on http://127.0.0.1:${port}/nested/procedure_1?who=hello%20world`);
 });

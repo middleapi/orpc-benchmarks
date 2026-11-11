@@ -47,7 +47,7 @@ export const groups: Group[] = [
     kind: "http",
     title: "RPC over HTTP",
     workload:
-      '`GET nested.procedure_1("hello world")` exactly as the official client sends it; the response carries a `Date`, so the RPC serializer runs on every request',
+      '`GET nested.procedure_1("hello world")` as encoded by the official client; the response carries a `Date`, so the RPC serializer runs on every request',
     rounds: 10,
     warmupSeconds: 10,
     benchmarks: [
@@ -61,7 +61,7 @@ export const groups: Group[] = [
       {
         name: "rpc-trpc",
         library: "tRPC",
-        packages: ["@trpc/server", "@trpc/client"],
+        packages: ["@trpc/server", "@trpc/client", "superjson"],
         client: "scripts/client.ts",
         expect: RPC_RESULT,
       },
@@ -72,21 +72,21 @@ export const groups: Group[] = [
     kind: "ws",
     title: "RPC over WebSocket",
     workload:
-      '`nested.procedure_1("hello world")` frames exactly as the official client sends them, one in flight per connection',
+      '`nested.procedure_1("hello world")` frames as encoded by the official client, one in flight per connection',
     rounds: 10,
-    warmupSeconds: 30, // with 10 s, tRPC's WebSocket server still sped up a few percent while measured
+    warmupSeconds: 30, // tRPC's WebSocket server can keep speeding up past 10 s
     benchmarks: [
       {
         name: "ws-orpc",
         library: "oRPC",
-        packages: ["@orpc/server", "@orpc/client"],
+        packages: ["@orpc/server", "@orpc/client", "ws"],
         client: "scripts/client.ts",
         expect: RPC_RESULT,
       },
       {
         name: "ws-trpc",
         library: "tRPC",
-        packages: ["@trpc/server", "@trpc/client"],
+        packages: ["@trpc/server", "@trpc/client", "superjson", "ws"],
         client: "scripts/client.ts",
         expect: RPC_RESULT,
       },

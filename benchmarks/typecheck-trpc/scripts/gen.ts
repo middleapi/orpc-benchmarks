@@ -15,14 +15,14 @@ import { procedure, router, Schema } from '../trpc';
 export const ${routerName} = router({
   procedure_1: ${PROCEDURE_1},
   procedure_2: ${PROCEDURE_2},
-  nested: router({
+  nested: {
     procedure_1: ${PROCEDURE_1},
     procedure_2: ${PROCEDURE_2},
-    nested: router({
+    nested: {
       procedure_1: ${PROCEDURE_1},
       procedure_2: ${PROCEDURE_2}
-    }),
-  }),
+    },
+  },
 })`.trim();
 }
 

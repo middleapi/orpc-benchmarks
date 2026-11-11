@@ -241,7 +241,7 @@ export function environment(): Environment {
     cpu: os.cpus()[0]?.model.trim() ?? "unknown",
     cores: os.cpus().length,
     threadsPerCore: threadsPerCore ? Number(threadsPerCore) : undefined,
-    memory: `${Math.round(os.totalmem() / 1024 / 1024)} MB`,
+    memory: `${Math.round(os.totalmem() / 1024 / 1024)} MiB`,
     os: `${distro ?? os.type()} (${os.type()} ${os.release()} ${os.arch()})`,
     virtualization: hypervisor ? `${hypervisor} VM` : undefined,
     node: process.version,

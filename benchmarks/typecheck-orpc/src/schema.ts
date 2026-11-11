@@ -1,7 +1,7 @@
 /**
- * Standard Schema V1 from `@standard-schema/spec` 1.1.0 (MIT, https://github.com/standard-schema/standard-schema),
- * vendored as Zod and ArkType do. Identical in typecheck-orpc and typecheck-trpc: both libraries infer
- * from the same declaration, which neither of them ships.
+ * Standard Schema V1 from `@standard-schema/spec` 1.1.0, vendored as Zod and ArkType do.
+ * Copyright (c) 2024 Colin McDonnell. MIT License: https://github.com/standard-schema/standard-schema/blob/main/LICENSE
+ * Identical in typecheck-orpc and typecheck-trpc: both libraries infer from the same declaration, which neither of them ships.
  */
 /** The Standard Typed interface. This is a base type extended by other specs. */
 export interface StandardTypedV1<Input = unknown, Output = Input> {

@@ -62,7 +62,7 @@ tRPC 11.28.0 — 2026-11-11 (@trpc/server@11.28.0, @trpc/client@11.28.0, typescr
 |    29 |    2.527 s |    2.725 s |   3.494 s |
 |    30 |    2.973 s |    3.248 s |   4.000 s |
 
-Median `--extendedDiagnostics` output:
+Median of each `--extendedDiagnostics` value:
 
 ```
 Files:                 1,108

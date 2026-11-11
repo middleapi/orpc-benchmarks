@@ -53,6 +53,5 @@ applyWSSHandler({
 });
 
 wss.on("listening", () => {
-  // eslint-disable-next-line no-console
   console.log(`Listening on ws://127.0.0.1:${port}`);
 });
