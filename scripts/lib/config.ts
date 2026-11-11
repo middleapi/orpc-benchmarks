@@ -49,7 +49,7 @@ export const groups: Group[] = [
     workload:
       '`GET nested.procedure_1("hello world")` as encoded by the official client; the response carries a `Date`, so the RPC serializer runs on every request',
     rounds: 10,
-    warmupSeconds: 10,
+    warmupSeconds: 30, // tRPC can keep speeding up past 10 s
     benchmarks: [
       {
         name: "rpc-orpc",
@@ -74,7 +74,7 @@ export const groups: Group[] = [
     workload:
       '`nested.procedure_1("hello world")` frames as encoded by the official client, one in flight per connection',
     rounds: 10,
-    warmupSeconds: 30, // tRPC's WebSocket server can keep speeding up past 10 s
+    warmupSeconds: 30, // tRPC can keep speeding up past 10 s
     benchmarks: [
       {
         name: "ws-orpc",
