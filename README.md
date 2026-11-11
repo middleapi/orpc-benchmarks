@@ -75,6 +75,17 @@ Workload: `GET nested.procedure_1("hello world")` exactly as the official client
 
 <sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
+### `ws` — RPC over WebSocket
+
+Workload: `nested.procedure_1("hello world")` frames exactly as the official client sends them, one in flight per connection.
+
+| Library                      | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
+| :--------------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
+| [oRPC](./benchmarks/ws-orpc) | 2.0.0-beta.50 | **25,056 req/s** | fastest      |   22,879 – 29,053 |     0.37 ms |     0.95 ms |          39.6 µs |  112 MiB |
+| [tRPC](./benchmarks/ws-trpc) | 11.28.0       | **18,110 req/s** | 1.38× slower |   16,297 – 21,954 |     0.53 ms |     1.26 ms |          54.5 µs |   81 MiB |
+
+<sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 30 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
+
 Run on:
 
 ```
