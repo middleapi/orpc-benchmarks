@@ -19,78 +19,78 @@ Committed results come from `pnpm bench typecheck` at the repository root, which
 
 oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/client@2.0.0-beta.50, typescript@7.0.2)
 
-| Metric                 | Result                                               |
-| :--------------------- | :--------------------------------------------------- |
-| Check time             | **2.125 s** (median; rounds range 1.799 s – 2.737 s) |
-| Total time             | 2.391 s (process wall time 3.142 s)                  |
-| Types / instantiations | 247,841 / 1,040,001                                  |
-| Memory used            | 268 MiB                                              |
+| Metric                 | Result                                         |
+| :--------------------- | :--------------------------------------------- |
+| Check time             | **2.393 s** (median; rounds 1.839 s – 3.026 s) |
+| Total time             | 2.726 s (process wall time 3.483 s)            |
+| Types / instantiations | 247,841 / 1,040,001                            |
+| Memory used            | 268 MiB                                        |
 
 <details>
 <summary>Per-round results and full diagnostics</summary>
 
 | Round | Check time | Total time | Wall time |
 | ----: | ---------: | ---------: | --------: |
-|     1 |    1.971 s |    2.283 s |   2.947 s |
-|     2 |    2.737 s |    3.058 s |   3.943 s |
-|     3 |    1.866 s |    2.082 s |   2.869 s |
-|     4 |    2.100 s |    2.315 s |   2.969 s |
-|     5 |    1.997 s |    2.220 s |   3.103 s |
-|     6 |    1.928 s |    2.141 s |   2.921 s |
-|     7 |    2.616 s |    2.863 s |   3.632 s |
-|     8 |    1.799 s |    2.030 s |   2.829 s |
-|     9 |    2.129 s |    2.391 s |   3.311 s |
-|    10 |    2.257 s |    2.504 s |   3.145 s |
-|    11 |    2.121 s |    2.433 s |   3.232 s |
-|    12 |    2.240 s |    2.466 s |   3.222 s |
-|    13 |    2.035 s |    2.297 s |   2.991 s |
-|    14 |    2.176 s |    2.390 s |   3.138 s |
-|    15 |    2.443 s |    2.785 s |   3.645 s |
-|    16 |    2.077 s |    2.391 s |   3.136 s |
-|    17 |    2.015 s |    2.336 s |   3.112 s |
-|    18 |    2.192 s |    2.444 s |   3.318 s |
-|    19 |    1.849 s |    2.062 s |   2.790 s |
-|    20 |    2.394 s |    2.645 s |   3.405 s |
-|    21 |    1.912 s |    2.234 s |   2.848 s |
-|    22 |    2.340 s |    2.565 s |   3.328 s |
-|    23 |    2.164 s |    2.490 s |   3.358 s |
-|    24 |    1.996 s |    2.224 s |   3.029 s |
-|    25 |    2.331 s |    2.675 s |   3.403 s |
-|    26 |    2.475 s |    2.699 s |   3.775 s |
-|    27 |    2.067 s |    2.367 s |   3.254 s |
-|    28 |    2.134 s |    2.437 s |   3.132 s |
-|    29 |    2.430 s |    2.720 s |   3.504 s |
-|    30 |    1.976 s |    2.184 s |   2.989 s |
+|     1 |    2.506 s |    2.809 s |   3.506 s |
+|     2 |    3.026 s |    3.299 s |   4.172 s |
+|     3 |    2.712 s |    3.052 s |   3.823 s |
+|     4 |    2.616 s |    2.947 s |   3.737 s |
+|     5 |    2.965 s |    3.238 s |   4.298 s |
+|     6 |    2.323 s |    2.559 s |   3.362 s |
+|     7 |    2.407 s |    2.731 s |   3.586 s |
+|     8 |    2.244 s |    2.584 s |   3.458 s |
+|     9 |    2.802 s |    3.106 s |   4.090 s |
+|    10 |    2.226 s |    2.575 s |   3.382 s |
+|    11 |    2.441 s |    2.786 s |   3.676 s |
+|    12 |    1.986 s |    2.296 s |   2.976 s |
+|    13 |    1.839 s |    2.068 s |   2.773 s |
+|    14 |    2.161 s |    2.497 s |   3.210 s |
+|    15 |    2.252 s |    2.497 s |   3.280 s |
+|    16 |    2.518 s |    2.829 s |   3.676 s |
+|    17 |    2.244 s |    2.563 s |   3.224 s |
+|    18 |    2.777 s |    3.003 s |   3.868 s |
+|    19 |    2.076 s |    2.402 s |   3.012 s |
+|    20 |    2.304 s |    2.552 s |   3.342 s |
+|    21 |    2.369 s |    2.593 s |   3.417 s |
+|    22 |    2.385 s |    2.722 s |   3.881 s |
+|    23 |    2.368 s |    2.692 s |   3.353 s |
+|    24 |    2.106 s |    2.428 s |   3.203 s |
+|    25 |    2.674 s |    2.994 s |   3.876 s |
+|    26 |    2.218 s |    2.423 s |   3.258 s |
+|    27 |    2.476 s |    2.804 s |   3.657 s |
+|    28 |    2.733 s |    2.977 s |   3.821 s |
+|    29 |    2.621 s |    2.910 s |   3.802 s |
+|    30 |    2.400 s |    2.746 s |   3.460 s |
 
 Median `--extendedDiagnostics` output:
 
 ```
 Files:                 1,421
-Lines:                47,103
+Lines:                47,100
 Identifiers:          87,526
 Symbols:             425,727
 Types:               247,841
 Instantiations:    1,040,001
-Memory used:        274,769K
-Memory allocs:     2,592,748
+Memory used:        274,791K
+Memory allocs:     2,592,747
 Config time:          0.005s
-Parse time:           0.190s
-Bind time:            0.058s
-Check time:           2.125s
-Emit time:            0.004s
-Total time:           2.391s
+Parse time:           0.209s
+Bind time:            0.076s
+Check time:           2.393s
+Emit time:            0.005s
+Total time:           2.726s
 ```
 
 </details>
 
-Compared with the rest of the `typecheck` group, measured in the same session:
+The whole `typecheck` group, measured in the same session:
 
 | Library                       | Version       |  Check time | Relative                    | Range (min – max) | Total time |   Types | Instantiations | Memory used |
 | :---------------------------- | :------------ | ----------: | :-------------------------- | ----------------: | ---------: | ------: | -------------: | ----------: |
-| [**oRPC**](../typecheck-orpc) | 2.0.0-beta.50 | **2.125 s** | fastest                     | 1.799 s – 2.737 s |    2.391 s | 247,841 |      1,040,001 |     268 MiB |
-| [tRPC](../typecheck-trpc)     | 11.28.0       | **2.288 s** | 1.08× slower (within noise) | 1.826 s – 2.986 s |    2.502 s | 227,281 |      1,086,257 |     227 MiB |
+| [**oRPC**](../typecheck-orpc) | 2.0.0-beta.50 | **2.393 s** | fastest                     | 1.839 s – 3.026 s |    2.726 s | 247,841 |      1,040,001 |     268 MiB |
+| [tRPC](../typecheck-trpc)     | 11.28.0       | **2.525 s** | 1.06× slower (within noise) | 2.097 s – 3.117 s |    2.728 s | 227,281 |      1,086,257 |     227 MiB |
 
-<sub>TypeScript 7.0.2, `tsc --singleThreaded` · median of 30 rounds (run order alternated); `tsc` pinned to CPU 3.</sub>
+<sub>TypeScript 7.0.2, `tsc --singleThreaded` on CPU 3 · median of 30 rounds (order alternated).</sub>
 
 Run on:
 

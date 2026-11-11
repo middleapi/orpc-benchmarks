@@ -97,6 +97,17 @@ Workload: `GET /nested/procedure_1?who=hello%20world`; the JSON response carries
 
 <sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
+### `typecheck` — Type-checking
+
+Workload: 3,000 procedures in 1,501 routers, plus a typed client call for every procedure; every input uses the same Standard Schema interface.
+
+| Library                             | Version       |  Check time | Relative                    | Range (min – max) | Total time |   Types | Instantiations | Memory used |
+| :---------------------------------- | :------------ | ----------: | :-------------------------- | ----------------: | ---------: | ------: | -------------: | ----------: |
+| [oRPC](./benchmarks/typecheck-orpc) | 2.0.0-beta.50 | **2.393 s** | fastest                     | 1.839 s – 3.026 s |    2.726 s | 247,841 |      1,040,001 |     268 MiB |
+| [tRPC](./benchmarks/typecheck-trpc) | 11.28.0       | **2.525 s** | 1.06× slower (within noise) | 2.097 s – 3.117 s |    2.728 s | 227,281 |      1,086,257 |     227 MiB |
+
+<sub>2026-11-11 · TypeScript 7.0.2, `tsc --singleThreaded` on CPU 3 · median of 30 rounds (order alternated).</sub>
+
 Run on:
 
 ```
