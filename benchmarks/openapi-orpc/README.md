@@ -21,10 +21,10 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/openapi@2.0
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **23,998 req/s** (median; rounds 22,038 – 27,021, CV 6.2%)             |
-| Latency       | p50 0.39 ms · p90 0.59 ms · p99 0.90 ms · p99.9 1.72 ms · mean 0.42 ms |
-| Server CPU    | 41.3 µs per request (99% of one core)                                  |
-| Server memory | 87 MiB peak RSS (87 MiB average under load)                            |
+| Throughput    | **23,981 req/s** (median; rounds 21,921 – 26,625, CV 6.3%)             |
+| Latency       | p50 0.40 ms · p90 0.59 ms · p99 0.91 ms · p99.9 1.35 ms · mean 0.42 ms |
+| Server CPU    | 41.5 µs per request (99% of one core)                                  |
+| Server memory | 90 MiB peak RSS (89 MiB average under load)                            |
 
 <details>
 <summary>Per-round results, request and response</summary>
@@ -33,16 +33,16 @@ Drift: throughput change from the first to the second half of the measurement wi
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 22,751 |  -1.8% | 0.42 ms | 0.93 ms | 8.50 ms |        99% |   43.5 µs |   87 MiB |  0.5% |          36% |
-|     2 | 23,310 |  +1.4% | 0.41 ms | 0.92 ms | 5.03 ms |        99% |   42.4 µs |   85 MiB |  0.7% |          35% |
-|     3 | 25,895 |  +2.4% | 0.35 ms | 0.89 ms | 11.1 ms |        98% |   38.0 µs |   88 MiB |  0.9% |          37% |
-|     4 | 24,100 |  -1.9% | 0.39 ms | 0.88 ms | 6.08 ms |        99% |   41.1 µs |   88 MiB |  0.4% |          36% |
-|     5 | 27,021 |  -2.7% | 0.32 ms | 0.86 ms | 5.24 ms |        99% |   36.6 µs |   89 MiB |  0.7% |          38% |
-|     6 | 23,897 | +16.1% | 0.40 ms | 0.88 ms | 6.74 ms |        99% |   41.5 µs |   89 MiB |  0.4% |          37% |
-|     7 | 25,305 |  -0.2% | 0.35 ms | 0.91 ms | 8.89 ms |        98% |   38.7 µs |   87 MiB |  1.4% |          37% |
-|     8 | 25,075 |  +7.0% | 0.38 ms | 0.90 ms | 5.41 ms |        99% |   39.3 µs |   87 MiB |  0.7% |          38% |
-|     9 | 23,682 |  -8.0% | 0.39 ms | 0.91 ms | 4.42 ms |        99% |   41.8 µs |   87 MiB |  0.3% |          35% |
-|    10 | 22,038 |  +5.8% | 0.41 ms | 0.91 ms | 5.14 ms |       100% |   45.2 µs |   90 MiB |  0.1% |          34% |
+|     1 | 25,797 |  -0.9% | 0.35 ms | 0.87 ms | 8.93 ms |        99% |   38.3 µs |   88 MiB |  0.8% |          36% |
+|     2 | 26,625 | +10.8% | 0.32 ms | 0.89 ms | 7.17 ms |        98% |   37.0 µs |   92 MiB |  1.1% |          41% |
+|     3 | 21,921 |  +4.7% | 0.42 ms | 0.94 ms | 5.24 ms |        99% |   45.4 µs |   90 MiB |  0.2% |          35% |
+|     4 | 22,989 |  +5.6% | 0.42 ms | 0.91 ms | 3.71 ms |        99% |   43.2 µs |   90 MiB |  0.5% |          35% |
+|     5 | 23,872 |  +4.7% | 0.40 ms | 0.91 ms | 2.89 ms |        99% |   41.6 µs |   90 MiB |  0.3% |          38% |
+|     6 | 25,459 |  -6.4% | 0.37 ms | 0.86 ms | 55.5 ms |        99% |   38.7 µs |   86 MiB |  0.3% |          39% |
+|     7 | 24,089 | -13.9% | 0.40 ms | 0.88 ms | 5.82 ms |        99% |   41.3 µs |   87 MiB |  0.3% |          36% |
+|     8 | 23,319 |  -6.2% | 0.40 ms | 0.92 ms | 11.3 ms |        99% |   42.5 µs |   86 MiB |  0.3% |          36% |
+|     9 | 23,039 |  +8.0% | 0.40 ms | 0.96 ms | 8.83 ms |        99% |   43.0 µs |   90 MiB |  0.4% |          36% |
+|    10 | 25,553 | +11.8% | 0.34 ms | 0.93 ms | 5.79 ms |        99% |   38.9 µs |   90 MiB |  0.5% |          35% |
 
 Request (plus a `host` header):
 
@@ -55,7 +55,7 @@ accept: */*
 Response:
 
 ```
-{"name":"nested/procedure_1","date":"2026-11-11T11:15:25.732Z","input":{"who":"hello world"}}
+{"name":"nested/procedure_1","date":"2026-11-11T11:29:15.603Z","input":{"who":"hello world"}}
 ```
 
 </details>
@@ -64,8 +64,8 @@ The whole `openapi` group, measured in the same session:
 
 | Library                     | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :-------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [**oRPC**](../openapi-orpc) | 2.0.0-beta.50 | **23,998 req/s** | fastest                     |   22,038 – 27,021 |     0.39 ms |     0.90 ms |          41.3 µs |   87 MiB |
-| [Hono](../openapi-hono)     | 4.13.17       | **22,661 req/s** | 1.06× slower (within noise) |   20,597 – 24,489 |     0.41 ms |     0.96 ms |          43.7 µs |   92 MiB |
+| [**oRPC**](../openapi-orpc) | 2.0.0-beta.50 | **23,981 req/s** | fastest                     |   21,921 – 26,625 |     0.40 ms |     0.91 ms |          41.5 µs |   90 MiB |
+| [Hono](../openapi-hono)     | 4.13.18       | **23,632 req/s** | 1.01× slower (within noise) |   21,069 – 26,717 |     0.40 ms |     0.95 ms |          41.9 µs |   92 MiB |
 
 <sub>Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 

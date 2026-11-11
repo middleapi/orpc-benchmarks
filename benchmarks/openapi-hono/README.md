@@ -17,14 +17,14 @@ Committed results come from `pnpm bench openapi` at the repository root, which m
 
 <!-- result:start -->
 
-Hono 4.13.17 — 2026-11-11 (hono@4.13.17, @hono/node-server@2.1.6)
+Hono 4.13.18 — 2026-11-11 (hono@4.13.18, @hono/node-server@2.1.7)
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **22,661 req/s** (median; rounds 20,597 – 24,489, CV 5.9%)             |
-| Latency       | p50 0.41 ms · p90 0.65 ms · p99 0.96 ms · p99.9 2.02 ms · mean 0.44 ms |
-| Server CPU    | 43.7 µs per request (99% of one core)                                  |
-| Server memory | 92 MiB peak RSS (90 MiB average under load)                            |
+| Throughput    | **23,632 req/s** (median; rounds 21,069 – 26,717, CV 7.8%)             |
+| Latency       | p50 0.40 ms · p90 0.60 ms · p99 0.95 ms · p99.9 1.54 ms · mean 0.42 ms |
+| Server CPU    | 41.9 µs per request (99% of one core)                                  |
+| Server memory | 92 MiB peak RSS (89 MiB average under load)                            |
 
 <details>
 <summary>Per-round results, request and response</summary>
@@ -33,16 +33,16 @@ Drift: throughput change from the first to the second half of the measurement wi
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 24,291 |  -7.2% | 0.39 ms | 0.94 ms | 5.48 ms |        98% |   40.6 µs |   93 MiB |  1.0% |          38% |
-|     2 | 21,776 | -10.1% | 0.41 ms | 1.01 ms | 5.08 ms |        99% |   45.6 µs |   91 MiB |  0.2% |          34% |
-|     3 | 24,018 |  +4.2% | 0.40 ms | 0.94 ms | 14.3 ms |        99% |   41.4 µs |   93 MiB |  0.3% |          35% |
-|     4 | 24,489 |  -5.9% | 0.38 ms | 0.95 ms | 11.0 ms |        98% |   40.2 µs |   90 MiB |  0.9% |          37% |
-|     5 | 21,356 |  +6.8% | 0.43 ms | 1.16 ms | 17.4 ms |        99% |   46.2 µs |   93 MiB |  0.9% |          35% |
-|     6 | 21,939 |  -5.0% | 0.42 ms | 1.01 ms | 5.20 ms |        99% |   45.1 µs |   91 MiB |  0.6% |          34% |
-|     7 | 20,597 |  -1.6% | 0.43 ms | 1.18 ms | 5.72 ms |        99% |   48.0 µs |   93 MiB |  0.6% |          35% |
-|     8 | 23,163 |  -6.0% | 0.41 ms | 0.96 ms | 4.81 ms |        99% |   42.6 µs |   92 MiB |  0.5% |          36% |
-|     9 | 23,313 |  +6.1% | 0.40 ms | 0.91 ms | 5.08 ms |        99% |   42.6 µs |   89 MiB |  0.2% |          35% |
-|    10 | 22,160 |  -5.2% | 0.42 ms | 0.97 ms | 10.3 ms |        99% |   44.7 µs |   95 MiB |  0.5% |          35% |
+|     1 | 24,045 | -18.2% | 0.38 ms | 0.95 ms | 9.29 ms |        99% |   41.2 µs |   91 MiB |  0.6% |          35% |
+|     2 | 26,127 |  -7.1% | 0.32 ms | 0.90 ms | 9.12 ms |        99% |   37.8 µs |   90 MiB |  0.7% |          40% |
+|     3 | 23,762 |  +3.3% | 0.40 ms | 0.95 ms | 6.82 ms |        99% |   41.8 µs |   92 MiB |  0.3% |          37% |
+|     4 | 23,501 |  -5.0% | 0.40 ms | 0.95 ms | 6.96 ms |        99% |   42.0 µs |   93 MiB |  0.6% |          36% |
+|     5 | 21,773 |  +4.9% | 0.43 ms | 0.97 ms | 10.8 ms |        99% |   45.5 µs |   90 MiB |  0.7% |          34% |
+|     6 | 21,069 |  -8.7% | 0.43 ms | 1.00 ms | 7.01 ms |        99% |   47.0 µs |   92 MiB |  0.4% |          34% |
+|     7 | 21,889 |  -3.1% | 0.43 ms | 0.97 ms | 10.9 ms |        99% |   45.2 µs |   90 MiB |  0.7% |          35% |
+|     8 | 24,920 |  +8.7% | 0.38 ms | 0.90 ms | 5.21 ms |        99% |   39.8 µs |   92 MiB |  0.3% |          38% |
+|     9 | 23,094 | +13.0% | 0.41 ms | 1.00 ms | 2.11 ms |        99% |   43.1 µs |   92 MiB |  0.2% |          36% |
+|    10 | 26,717 |  -2.0% | 0.31 ms | 0.88 ms | 11.0 ms |        99% |   37.0 µs |   87 MiB |  0.7% |          40% |
 
 Request (plus a `host` header):
 
@@ -55,7 +55,7 @@ accept: */*
 Response:
 
 ```
-{"name":"nested/procedure_1","date":"2026-11-11T11:15:45.921Z","input":{"who":"hello world"}}
+{"name":"nested/procedure_1","date":"2026-11-11T11:29:35.813Z","input":{"who":"hello world"}}
 ```
 
 </details>
@@ -64,8 +64,8 @@ The whole `openapi` group, measured in the same session:
 
 | Library                     | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :-------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](../openapi-orpc)     | 2.0.0-beta.50 | **23,998 req/s** | fastest                     |   22,038 – 27,021 |     0.39 ms |     0.90 ms |          41.3 µs |   87 MiB |
-| [**Hono**](../openapi-hono) | 4.13.17       | **22,661 req/s** | 1.06× slower (within noise) |   20,597 – 24,489 |     0.41 ms |     0.96 ms |          43.7 µs |   92 MiB |
+| [oRPC](../openapi-orpc)     | 2.0.0-beta.50 | **23,981 req/s** | fastest                     |   21,921 – 26,625 |     0.40 ms |     0.91 ms |          41.5 µs |   90 MiB |
+| [**Hono**](../openapi-hono) | 4.13.18       | **23,632 req/s** | 1.01× slower (within noise) |   21,069 – 26,717 |     0.40 ms |     0.95 ms |          41.9 µs |   92 MiB |
 
 <sub>Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 

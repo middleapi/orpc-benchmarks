@@ -92,8 +92,8 @@ Workload: `GET /nested/procedure_1?who=hello%20world`; the JSON response carries
 
 | Library                           | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :-------------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/openapi-orpc) | 2.0.0-beta.50 | **23,998 req/s** | fastest                     |   22,038 – 27,021 |     0.39 ms |     0.90 ms |          41.3 µs |   87 MiB |
-| [Hono](./benchmarks/openapi-hono) | 4.13.17       | **22,661 req/s** | 1.06× slower (within noise) |   20,597 – 24,489 |     0.41 ms |     0.96 ms |          43.7 µs |   92 MiB |
+| [oRPC](./benchmarks/openapi-orpc) | 2.0.0-beta.50 | **23,981 req/s** | fastest                     |   21,921 – 26,625 |     0.40 ms |     0.91 ms |          41.5 µs |   90 MiB |
+| [Hono](./benchmarks/openapi-hono) | 4.13.18       | **23,632 req/s** | 1.01× slower (within noise) |   21,069 – 26,717 |     0.40 ms |     0.95 ms |          41.9 µs |   92 MiB |
 
 <sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
