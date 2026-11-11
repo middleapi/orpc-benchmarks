@@ -42,7 +42,7 @@ The runner ([scripts/bench.ts](./scripts/bench.ts)):
 
 ## Latest results
 
-Produced with `pnpm bench` and `pnpm bench:profile` (default settings) on a 4-vCPU cloud VM, with every other process, the unbound kernel workqueues and movable IRQs moved to CPU 0. Over that day, throughput on this VM varied by up to 37% at about 1% steal, and the `rpc` ratio ranged from 3.6× to 4.4×: only compare results from the same run.
+Produced with `pnpm bench` and `pnpm bench:profile` (default settings) on a 4-vCPU cloud VM, with every other process, the unbound kernel workqueues and movable IRQs moved to CPU 0. Over that day, a benchmark's median throughput on this VM varied by up to 1.6× at about 1% steal, and the `rpc` ratio ranged from 3.6× to 4.4×: only compare results from the same run.
 
 <details>
 <summary>CPU isolation commands (optional, Linux; all but the last line as root)</summary>
@@ -70,10 +70,10 @@ Workload: `GET nested.procedure_1("hello world")` as encoded by the official cli
 
 | Library                       | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :---------------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **25,745 req/s** | fastest      |   23,942 – 28,298 |     0.35 ms |     0.90 ms |          38.4 µs |   87 MiB |
-| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **6,153 req/s** | 4.18× slower |     5,436 – 7,545 |     1.29 ms |     7.45 ms |         160.9 µs |  205 MiB |
+| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **24,545 req/s** | fastest      |   16,480 – 26,491 |     0.36 ms |     0.92 ms |          40.3 µs |   87 MiB |
+| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **6,429 req/s** | 3.82× slower |     3,230 – 7,864 |     1.15 ms |     6.76 ms |         154.0 µs |  208 MiB |
 
-<sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
+<sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 30 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
 ### `ws` — RPC over WebSocket
 
