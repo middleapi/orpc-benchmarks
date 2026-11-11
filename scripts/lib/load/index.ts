@@ -1,157 +1,106 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import { Worker } from "node:worker_threads";
-import { type LatencySummary, mean, stdev, summarizeLatencies, sum } from "../stats.ts";
-import { DRAIN_TIMEOUT_MS, type LoadTarget, type WorkerReport } from "./types.ts";
+import { type LatencySummary, sum, summarizeLatencies } from "../stats.ts";
+import { DRAIN_TIMEOUT_MS, type LoadTarget, type WorkerMessage } from "./types.ts";
 
-export type { HttpRequestSpec, LoadTarget, WsMessageTemplate } from "./types.ts";
+export { frame, type HttpRequestSpec, type LoadTarget, type WsMessageTemplate } from "./types.ts";
 
 export interface LoadOptions {
   target: LoadTarget;
+  port: number;
   expect: string[];
   connections: number;
-  /** Number of load generator threads; connections are split evenly between them. */
-  workers: number;
+  /** Load generator threads; the connections are split between them. */
+  threads: number;
   warmupMs: number;
   durationMs: number;
-  /** Called right when the measurement window opens / closes (e.g. to sample the server). */
   onMeasureStart?: () => void;
   onMeasureEnd?: () => void;
 }
 
 export interface LoadResult {
   requests: number;
-  elapsedMs: number;
-  /** Completed requests per second during the measurement window. */
+  /** Requests per second during the measurement window. */
   throughput: number;
   latency: LatencySummary;
-  /** Throughput of each one-second slice of the measurement window. */
-  perSecond: { min: number; max: number; stdev: number; series: number[] };
-  /** CPU used by the busiest load generator thread (1 = one full core). */
+  /** Requests completed in each second of the window. */
+  perSecond: number[];
+  /** CPU used by the busiest load generator thread (1 = one core). */
   clientCpu: number;
+  /** First valid response body. */
+  sample: string;
 }
+
+type Report = Extract<WorkerMessage, { type: "result" }>;
 
 const WORKER_URL = new URL("./worker.ts", import.meta.url);
 
+/** Runs the closed-loop load; rejects as soon as any response is invalid or a request is lost. */
 export async function runLoad(options: LoadOptions): Promise<LoadResult> {
-  const threads = Math.max(1, Math.min(options.workers, options.connections));
-  const workers: Worker[] = [];
-  const results: Promise<WorkerReport>[] = [];
-  const ready: Promise<void>[] = [];
-
-  for (let i = 0; i < threads; i++) {
-    const connections =
-      Math.floor(options.connections / threads) + (i < options.connections % threads ? 1 : 0);
-    const worker = new Worker(WORKER_URL, {
-      workerData: { target: options.target, connections, expect: options.expect },
-    });
-    workers.push(worker);
-
-    const exited = new Promise<never>((_, reject) => {
-      worker.once("error", reject);
-      worker.once("exit", (code) => reject(new Error(`Load generator exited early (${code})`)));
-    });
-    // Rejections are observed through `ready`/`results`; avoid unhandled-rejection noise.
-    exited.catch(() => {});
-
-    ready.push(
-      Promise.race([
-        exited,
-        new Promise<void>((resolve) => {
-          worker.on("message", (message: { type: string }) => {
-            if (message.type === "ready") resolve();
-          });
-        }),
-      ]),
-    );
-
-    const result = Promise.race([
-      exited,
-      new Promise<WorkerReport>((resolve) => {
-        worker.on("message", (message: WorkerReport) => {
-          if (message.type === "result") resolve(message);
-        });
+  const threads = Math.max(1, Math.min(options.threads, options.connections));
+  const workers = Array.from(
+    { length: threads },
+    (_, i) =>
+      new Worker(WORKER_URL, {
+        workerData: {
+          target: options.target,
+          port: options.port,
+          expect: options.expect,
+          connections:
+            Math.floor(options.connections / threads) + (i < options.connections % threads ? 1 : 0),
+        },
       }),
-    ]);
-    result.catch(() => {});
-    results.push(result);
-  }
+  );
 
-  let readyTimer: NodeJS.Timeout | undefined;
-  let reportTimer: NodeJS.Timeout | undefined;
+  const aborted = new Promise<never>((_, reject) => {
+    for (const worker of workers) {
+      worker.on("message", (message: WorkerMessage) => {
+        if (message.type === "failed") reject(new Error(`Load run failed: ${message.reason}`));
+      });
+      worker.on("error", reject);
+      worker.on("exit", (code) => reject(new Error(`Load generator exited early (${code})`)));
+    }
+  });
+  aborted.catch(() => {}); // observed through `within`
+  const within = <T>(promise: Promise<T>) => Promise.race([aborted, promise]);
+  const reports = Promise.all(
+    workers.map(
+      (worker) =>
+        new Promise<Report>((resolve) =>
+          worker.on("message", (message: WorkerMessage) => {
+            if (message.type === "result") resolve(message);
+          }),
+        ),
+    ),
+  );
+
   try {
-    await Promise.race([
-      Promise.all(ready),
-      new Promise<never>((_, reject) => {
-        readyTimer = setTimeout(
-          () =>
-            reject(
-              new Error("Load generator could not complete a first request on every connection"),
-            ),
-          15_000,
-        );
-      }),
-    ]);
-    clearTimeout(readyTimer);
-
-    await sleep(options.warmupMs);
+    await within(sleep(options.warmupMs));
     for (const worker of workers) worker.postMessage("measure");
     options.onMeasureStart?.();
 
-    await sleep(options.durationMs);
+    await within(sleep(options.durationMs));
     for (const worker of workers) worker.postMessage("stop");
     options.onMeasureEnd?.();
 
-    // A worker that does not report (e.g. stuck on a response it cannot parse) fails the run.
-    const reports = await Promise.race([
-      Promise.all(results),
-      new Promise<never>((_, reject) => {
-        reportTimer = setTimeout(
-          () => reject(new Error("A load generator thread did not report after the measurement")),
-          DRAIN_TIMEOUT_MS + 10_000,
-        );
-      }),
-    ]);
-    clearTimeout(reportTimer);
+    const timeout = sleep(DRAIN_TIMEOUT_MS + 10_000, undefined, { ref: false }).then(() => {
+      throw new Error("A load generator thread did not report after the measurement");
+    });
+    const results = await within(Promise.race([reports, timeout]));
 
-    const failure = reports.find(
-      (report) => report.invalid > 0 || report.errors > 0 || report.unanswered > 0,
-    );
-    if (failure) {
-      throw new Error(
-        `Load run is invalid (${sum(reports.map((r) => r.invalid))} invalid responses, ` +
-          `${sum(reports.map((r) => r.unanswered))} unanswered requests, ` +
-          `${sum(reports.map((r) => r.errors))} connection errors): ${failure.firstFailure}`,
-      );
-    }
-
-    const latencies = new Float64Array(sum(reports.map((report) => report.latencies.length)));
-    let offset = 0;
-    for (const report of reports) {
-      latencies.set(report.latencies, offset);
-      offset += report.latencies.length;
-    }
-
-    const seconds = Math.min(...reports.map((report) => report.perSecond.length));
-    const perSecond = Array.from({ length: seconds }, (_, index) =>
-      sum(reports.map((report) => report.perSecond[index] ?? 0)),
-    );
-
+    const latencies = results.flatMap((result) => result.latencies);
+    const seconds = Math.min(...results.map((result) => result.perSecond.length));
     return {
-      requests: sum(reports.map((report) => report.completed)),
-      elapsedMs: mean(reports.map((report) => report.elapsedMs)),
-      throughput: sum(reports.map((report) => report.completed / (report.elapsedMs / 1000))),
+      requests: latencies.length,
+      throughput: sum(results.map((result) => result.latencies.length / (result.elapsedMs / 1000))),
       latency: summarizeLatencies(latencies),
-      perSecond: {
-        min: Math.min(...perSecond),
-        max: Math.max(...perSecond),
-        stdev: stdev(perSecond),
-        series: perSecond,
-      },
-      clientCpu: Math.max(...reports.map((report) => report.cpuUtilization)),
+      perSecond: Array.from({ length: seconds }, (_, i) =>
+        sum(results.map((result) => result.perSecond[i]!)),
+      ),
+      clientCpu: Math.max(...results.map((result) => result.cpuUtilization)),
+      sample: results[0]!.sample,
     };
   } finally {
-    clearTimeout(readyTimer);
-    clearTimeout(reportTimer);
     await Promise.all(workers.map((worker) => worker.terminate()));
   }
 }

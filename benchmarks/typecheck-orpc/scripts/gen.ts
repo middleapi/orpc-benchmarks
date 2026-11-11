@@ -1,12 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const NUM_ROUTERS = 500;
-const ROUTER_DIR = path.resolve(__dirname, "../src/router");
-const CONSUME_DIR = path.resolve(__dirname, "../src/consume");
+const ROUTER_DIR = path.resolve(import.meta.dirname, "../src/router");
+const CONSUME_DIR = path.resolve(import.meta.dirname, "../src/consume");
 
 const PROCEDURE_1 = `base.input({} as Schema<{ who: string }, { who: string }>).handler(({input}) => \`hello \${input.who}\`)`;
 const PROCEDURE_2 = `base.input({} as Schema<{ id: string }, { id: string }>).handler(({input}) => ({ id: input.id }))`;

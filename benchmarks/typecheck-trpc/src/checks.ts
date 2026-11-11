@@ -1,5 +1,4 @@
-// Guards the benchmark: each line below must be a type error. If inference ever fell back to `any`,
-// they would stop being errors and tsc would fail instead of looking fast.
+// Each marked line must be a type error, so inference falling back to `any` fails tsc.
 import { client } from "./client";
 import { procedure, type Schema } from "./trpc";
 

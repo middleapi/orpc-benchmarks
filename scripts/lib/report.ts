@@ -1,69 +1,92 @@
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { groups } from "./config.ts";
-import { packageBin } from "./system.ts";
-import type {
-  GroupResult,
-  ServerBenchmarkResult,
-  Spread,
-  TypecheckBenchmarkResult,
+import { frame } from "./load/types.ts";
+import {
+  type BenchmarkResult,
+  type GroupResult,
+  type ServerBenchmarkResult,
+  type ServerRound,
+  type Spread,
+  type TypecheckBenchmarkResult,
+  type TypecheckRound,
+  isTypecheck,
 } from "./results.ts";
+import { mean } from "./stats.ts";
+import { packageBin, run } from "./system.ts";
 
-const int = (value: number) => Math.round(value).toLocaleString("en-US");
-const ms = (value: number) => `${value.toFixed(value < 10 ? 2 : 1)} ms`;
-const seconds = (value: number) => `${value.toFixed(3)} s`;
-const mib = (bytes: number) => `${Math.round(bytes / 1024 / 1024)} MiB`;
-const pct = (fraction: number) => `${(fraction * 100).toFixed(fraction < 0.1 ? 1 : 0)}%`;
-const us = (value: number) => `${value.toFixed(1)} µs`;
-const signedPct = (fraction: number) =>
+export const int = (value: number) => Math.round(value).toLocaleString("en-US");
+export const ms = (value: number) => `${value.toFixed(value < 10 ? 2 : 1)} ms`;
+export const seconds = (value: number) => `${value.toFixed(3)} s`;
+export const mib = (bytes: number) => `${Math.round(bytes / 1024 / 1024)} MiB`;
+export const pct = (fraction: number) => `${(fraction * 100).toFixed(fraction < 0.1 ? 1 : 0)}%`;
+export const signedPct = (fraction: number) =>
   `${fraction >= 0 ? "+" : ""}${(fraction * 100).toFixed(1)}%`;
+const us = (value: number) => `${value.toFixed(1)} µs`;
+export const rounds = (count: number) => `${count} round${count === 1 ? "" : "s"}`;
+const orNa = <T>(value: T | undefined, format: (value: T) => string) =>
+  value === undefined ? "n/a" : format(value);
 const cpuLabel = (list: string) => (/[,-]/.test(list) ? `CPUs ${list}` : `CPU ${list}`);
 
-function version(result: { versions: Record<string, string> }): string {
-  return Object.values(result.versions)[0] ?? "?";
-}
-
-/**
- * Describes how a benchmark compares with the best one of its group. Ranges that overlap across
- * rounds are called out, since the difference is then within run-to-run noise.
- */
+/** "1.33× slower", plus "(within noise)" when the min – max ranges overlap. */
 function relative(value: Spread, best: Spread, higherIsBetter: boolean): string {
   if (value === best) return "fastest";
-  const factor = higherIsBetter ? best.median / value.median : value.median / best.median;
+  const factor = (higherIsBetter ? best.median / value.median : value.median / best.median).toFixed(
+    2,
+  );
   const overlaps = higherIsBetter ? value.max >= best.min : value.min <= best.max;
-  const slower = factor.toFixed(2) === "1.00" ? "" : " slower";
-  return `${factor.toFixed(2)}×${slower}${overlaps ? " (within noise)" : ""}`;
+  return `${factor}×${factor === "1.00" ? "" : " slower"}${overlaps ? " (within noise)" : ""}`;
 }
 
 function bestOf<T>(items: T[], score: (item: T) => number): T {
   return items.reduce((best, item) => (score(item) > score(best) ? item : best));
 }
 
-function serverTable(
-  result: GroupResult & { benchmarks: ServerBenchmarkResult[] },
-  highlight?: string,
-) {
-  const best = bestOf(result.benchmarks, (b) => b.summary.throughput.median);
-  const rows = result.benchmarks.map((b) => {
-    const s = b.summary;
-    const name = b.name === highlight ? `**${b.library}**` : b.library;
-    return [
-      `[${name}](${highlight ? `../${b.name}` : `./benchmarks/${b.name}`})`,
-      version(b),
-      `**${int(s.throughput.median)}** req/s`,
-      relative(s.throughput, best.summary.throughput, true),
-      `${int(s.throughput.min)} – ${int(s.throughput.max)}`,
-      ms(s.latency.p50),
-      ms(s.latency.p99),
-      s.cpuPerRequest === undefined ? "n/a" : us(s.cpuPerRequest),
-      s.peakRss === undefined ? "n/a" : mib(s.peakRss),
-    ];
-  });
+interface Comparison {
+  header: string[];
+  align: string;
+  /** Index of the cell shown in bold. */
+  headline: number;
+  rows: { name: string; library: string; cells: string[] }[];
+}
 
-  return table(
-    [
-      "Library",
+/** One row per benchmark, shared by the README tables and the console summary. */
+function comparison(result: GroupResult): Comparison {
+  if (isTypecheck(result)) {
+    const best = bestOf(result.benchmarks, (b) => -b.summary.checkTime.median).summary.checkTime;
+    return {
+      header: [
+        "Version",
+        "Check time",
+        "Relative",
+        "Range (min – max)",
+        "Total time",
+        "Types",
+        "Instantiations",
+        "Memory used",
+      ],
+      align: "lrlrrrrr",
+      headline: 1,
+      rows: result.benchmarks.map(({ name, library, versions, summary: s }) => ({
+        name,
+        library,
+        cells: [
+          Object.values(versions)[0]!,
+          seconds(s.checkTime.median),
+          relative(s.checkTime, best, false),
+          `${seconds(s.checkTime.min)} – ${seconds(s.checkTime.max)}`,
+          seconds(s.totalTime.median),
+          int(s.diagnostics.Types ?? Number.NaN),
+          int(s.diagnostics.Instantiations ?? Number.NaN),
+          mib(s.diagnostics["Memory used"] ?? Number.NaN),
+        ],
+      })),
+    };
+  }
+
+  const best = bestOf(result.benchmarks, (b) => b.summary.throughput.median).summary.throughput;
+  return {
+    header: [
       "Version",
       "Throughput",
       "Relative",
@@ -73,105 +96,125 @@ function serverTable(
       "Server CPU / req",
       "Peak RSS",
     ],
-    ["l", "l", "r", "l", "r", "r", "r", "r", "r"],
-    rows,
-  );
+    align: "lrlrrrrr",
+    headline: 1,
+    rows: result.benchmarks.map(({ name, library, versions, summary: s }) => ({
+      name,
+      library,
+      cells: [
+        Object.values(versions)[0]!,
+        `${int(s.throughput.median)} req/s`,
+        relative(s.throughput, best, true),
+        `${int(s.throughput.min)} – ${int(s.throughput.max)}`,
+        ms(s.latency.p50),
+        ms(s.latency.p99),
+        orNa(s.cpuPerRequest, us),
+        orNa(s.peakRss, mib),
+      ],
+    })),
+  };
 }
 
-function typecheckTable(
-  result: GroupResult & { benchmarks: TypecheckBenchmarkResult[] },
-  highlight?: string,
-) {
-  const best = bestOf(result.benchmarks, (b) => -b.summary.checkTime.median);
-  const rows = result.benchmarks.map((b) => {
-    const s = b.summary;
-    const name = b.name === highlight ? `**${b.library}**` : b.library;
-    return [
-      `[${name}](${highlight ? `../${b.name}` : `./benchmarks/${b.name}`})`,
-      version(b),
-      `**${seconds(s.checkTime.median)}**`,
-      relative(s.checkTime, best.summary.checkTime, false),
-      `${seconds(s.checkTime.min)} – ${seconds(s.checkTime.max)}`,
-      seconds(s.totalTime.median),
-      int(s.diagnostics.Types ?? Number.NaN),
-      int(s.diagnostics.Instantiations ?? Number.NaN),
-      mib(s.diagnostics["Memory used"] ?? Number.NaN),
-    ];
-  });
-
-  return table(
-    [
-      "Library",
-      "Version",
-      "Check time",
-      "Relative",
-      "Range (min – max)",
-      "Total time",
-      "Types",
-      "Instantiations",
-      "Memory used",
-    ],
-    ["l", "l", "r", "l", "r", "r", "r", "r", "r"],
-    rows,
-  );
-}
-
-function table(header: string[], align: ("l" | "r")[], rows: string[][]): string {
-  const separator = align.map((a) => (a === "r" ? "--:" : ":--"));
+function table(header: string[], align: string, rows: string[][]): string {
+  const separator = [...align].map((a) => (a === "r" ? "--:" : ":--"));
   return [header, separator, ...rows].map((cells) => `| ${cells.join(" | ")} |`).join("\n");
 }
 
+/** `highlight`: the benchmark whose README the table is in (its name in bold, relative links). */
 function groupTable(result: GroupResult, highlight?: string): string {
-  return result.group.kind === "typecheck"
-    ? typecheckTable(result as GroupResult & { benchmarks: TypecheckBenchmarkResult[] }, highlight)
-    : serverTable(result as GroupResult & { benchmarks: ServerBenchmarkResult[] }, highlight);
-}
-
-function describeRun(result: GroupResult): string {
-  const s = result.settings;
-  const idle = s.cpus.idle ? ` (SMT sibling ${s.cpus.idle} kept idle)` : "";
-  const pinning = s.pinned
-    ? result.group.kind === "typecheck"
-      ? `\`tsc\` pinned to ${cpuLabel(s.cpus.typecheck)}${s.cpus.typecheck === s.cpus.server ? idle : ""}`
-      : `server pinned to ${cpuLabel(s.cpus.server)}${idle}, load generator to ${cpuLabel(s.cpus.client)}`
-    : "no CPU pinning";
-
-  if (result.group.kind === "typecheck") {
-    const typescript = result.benchmarks[0]?.versions.typescript;
-    const flags = s.tscArgs?.filter((arg) => arg === "--singleThreaded" || arg === "--checkers");
-    const mode = flags?.length ? `, \`tsc ${flags.join(" ")}\`` : "";
-    return `TypeScript ${typescript ?? "?"}${mode} · median of ${s.rounds} rounds (run order alternated); ${pinning}.`;
-  }
-
-  return (
-    `Median of ${s.rounds} rounds, each with a fresh server process (run order alternated); ` +
-    `${s.connections} connections, ${s.warmupSeconds} s warm-up + ${s.durationSeconds} s measurement per round; ${pinning}.`
+  const { header, align, headline, rows } = comparison(result);
+  return table(
+    ["Library", ...header],
+    `l${align}`,
+    rows.map(({ name, library, cells }) => [
+      `[${name === highlight ? `**${library}**` : library}](${highlight ? `../${name}` : `./benchmarks/${name}`})`,
+      ...cells.map((cell, i) => (i === headline ? `**${cell}**` : cell)),
+    ]),
   );
 }
 
-/** Everything the runner flagged for this group (CPU layout, saturation, warm-up, noise). */
-function groupWarnings(result: GroupResult): string[] {
-  const benchmarks = result.benchmarks as (ServerBenchmarkResult | TypecheckBenchmarkResult)[];
+/** "Label value · Label value …" for the console. */
+const labelled = (header: string[], cells: string[]) =>
+  cells.map((cell, i) => `${header[i]} ${cell}`).join(" · ");
+
+export function consoleSummary(result: GroupResult): string {
+  const { header, rows } = comparison(result);
+  const width = Math.max(...rows.map((row) => row.name.length));
   return [
-    ...(result.settings.warnings ?? []),
-    ...benchmarks.flatMap((b) => ("warnings" in b ? (b.warnings ?? []) : [])),
-  ];
+    `  Summary (median of ${rounds(result.settings.rounds)}):`,
+    ...rows.map(
+      (row) => `    ${row.name.padEnd(width)}  ${labelled(header.slice(1), row.cells.slice(1))}`,
+    ),
+    ...result.warnings.map((warning) => `  ⚠ ${warning}`),
+  ].join("\n");
 }
 
-function warningLines(warnings: string[]): string[] {
-  return warnings.length ? ["", ...warnings.map((warning) => `> ⚠ ${warning}`)] : [];
+const SERVER_ROUND = [
+  "Req/s",
+  "Drift",
+  "p50",
+  "p99",
+  "Max",
+  "Server CPU",
+  "CPU / req",
+  "Peak RSS",
+  "Steal",
+  "Load gen CPU",
+];
+const serverRoundCells = (r: ServerRound) => [
+  int(r.throughput),
+  orNa(r.drift, signedPct),
+  ms(r.latency.p50),
+  ms(r.latency.p99),
+  ms(r.latency.max),
+  orNa(r.serverCpu, pct),
+  orNa(r.cpuPerRequest, us),
+  orNa(r.peakRss, mib),
+  orNa(r.steal, pct),
+  pct(r.clientCpu),
+];
+
+const TYPECHECK_ROUND = ["Check time", "Total time", "Wall time"];
+const typecheckRoundCells = (r: TypecheckRound) =>
+  [r.checkTime, r.totalTime, r.wallTime].map(seconds);
+
+const roundLine = (name: string, round: number, details: string) =>
+  `  ${name.padEnd(14)} round ${String(round).padStart(2)}: ${details}`;
+
+export const formatServerRound = (name: string, r: ServerRound) =>
+  roundLine(name, r.round, labelled(SERVER_ROUND, serverRoundCells(r)));
+
+export const formatTypecheckRound = (name: string, r: TypecheckRound) =>
+  roundLine(name, r.round, labelled(TYPECHECK_ROUND, typecheckRoundCells(r)));
+
+function describeRun(result: GroupResult): string {
+  const { cpus } = result.settings;
+  const median = `median of ${rounds(result.settings.rounds)} (order alternated)`;
+  const server =
+    cpus && `${cpuLabel(cpus.server)}${cpus.idle ? ` (SMT sibling ${cpus.idle} idle)` : ""}`;
+
+  if (isTypecheck(result)) {
+    const tsc = `\`tsc ${result.settings.tscArgs.join(" ")}\` ${server ? `on ${server}` : "(not pinned)"}`;
+    return `TypeScript ${result.benchmarks[0]?.versions.typescript}, ${tsc} · ${median}.`;
+  }
+
+  const s = result.settings;
+  const pinning = s.cpus
+    ? `server on ${server}, load generator on ${cpuLabel(s.cpus.client)}`
+    : "no CPU pinning";
+  return `Median of ${rounds(s.rounds)} (fresh server each, order alternated) · ${s.connections} connections · ${s.warmupSeconds} s warm-up + ${s.durationSeconds} s measured · ${pinning}.`;
 }
 
 function describeEnvironment(result: GroupResult): string {
   const e = result.environment;
   const smt =
-    e.threadsPerCore === undefined
-      ? ""
-      : e.threadsPerCore === 1
-        ? ", no SMT"
-        : `, ${e.threadsPerCore} threads per core`;
+    e.threadsPerCore === 1
+      ? ", no SMT"
+      : e.threadsPerCore
+        ? `, ${e.threadsPerCore} threads per core`
+        : "";
   return [
-    `CPU: ${e.cpu} (${e.cores} ${e.threadsPerCore === undefined ? "cores" : "CPUs"}${smt}${e.virtualization ? `, ${e.virtualization}` : ""})`,
+    `CPU: ${e.cpu} (${e.cores} CPUs${smt}${e.virtualization ? `, ${e.virtualization}` : ""})`,
     `Memory: ${e.memory}`,
     `OS: ${e.os}`,
     `Node: ${e.node} (V8 ${e.v8})`,
@@ -179,35 +222,12 @@ function describeEnvironment(result: GroupResult): string {
   ].join("\n");
 }
 
-/** Plain-text summary of a group run for the console: medians, ranges and the comparison. */
-export function consoleSummary(result: GroupResult): string {
-  const { rounds } = result.settings;
-  const lines = [`  Summary (median of ${rounds} round${rounds === 1 ? "" : "s"}):`];
-  const pad = Math.max(...result.benchmarks.map((b) => b.name.length));
+const warningLines = (result: GroupResult) =>
+  result.warnings.length
+    ? ["", "> [!WARNING]", ...result.warnings.map((warning) => `> - ${warning}`)]
+    : [];
 
-  if (result.group.kind === "typecheck") {
-    const benchmarks = result.benchmarks as TypecheckBenchmarkResult[];
-    const best = bestOf(benchmarks, (b) => -b.summary.checkTime.median);
-    for (const b of benchmarks) {
-      const s = b.summary;
-      lines.push(
-        `    ${b.name.padEnd(pad)}  check ${seconds(s.checkTime.median)} (${seconds(s.checkTime.min)} – ${seconds(s.checkTime.max)}) · total ${seconds(s.totalTime.median)} · ${int(s.diagnostics.Types ?? Number.NaN)} types · ${int(s.diagnostics.Instantiations ?? Number.NaN)} instantiations · ${mib(s.diagnostics["Memory used"] ?? Number.NaN)} · ${relative(s.checkTime, best.summary.checkTime, false)}`,
-      );
-    }
-  } else {
-    const benchmarks = result.benchmarks as ServerBenchmarkResult[];
-    const best = bestOf(benchmarks, (b) => b.summary.throughput.median);
-    for (const b of benchmarks) {
-      const s = b.summary;
-      lines.push(
-        `    ${b.name.padEnd(pad)}  ${int(s.throughput.median)} req/s (${int(s.throughput.min)} – ${int(s.throughput.max)}, CV ${pct(s.throughput.cv)}) · p50 ${ms(s.latency.p50)} · p99 ${ms(s.latency.p99)} · ${s.cpuPerRequest === undefined ? "n/a" : us(s.cpuPerRequest)} CPU/req · ${s.peakRss === undefined ? "n/a" : mib(s.peakRss)} peak RSS · ${relative(s.throughput, best.summary.throughput, true)}`,
-      );
-    }
-  }
-
-  lines.push(...groupWarnings(result).map((warning) => `  ⚠ ${warning}`));
-  return lines.join("\n");
-}
+const fence = (content: string, lang = "") => ["```" + lang, content, "```"].join("\n");
 
 function rootSection(results: GroupResult[]): string {
   const sections = results.map((result) =>
@@ -219,145 +239,100 @@ function rootSection(results: GroupResult[]): string {
       groupTable(result),
       "",
       `<sub>${result.date.slice(0, 10)} · ${describeRun(result)}</sub>`,
-      ...warningLines(groupWarnings(result)),
+      ...warningLines(result),
     ].join("\n"),
   );
+  const environments = [...new Set(results.map(describeEnvironment))];
+  return [...sections, "Run on:", ...environments.map((e) => fence(e))].join("\n\n");
+}
 
-  const environments = [...new Set(results.map((result) => describeEnvironment(result)))];
+function details(summary: string, ...content: string[]): string {
+  return ["<details>", `<summary>${summary}</summary>`, "", ...content, "</details>"].join("\n");
+}
+
+function serverDetails(b: ServerBenchmarkResult): string {
+  const s = b.summary;
+  const summary = table(["Metric", "Result"], "ll", [
+    [
+      "Throughput",
+      `**${int(s.throughput.median)} req/s** (median; rounds ${int(s.throughput.min)} – ${int(s.throughput.max)}, CV ${pct(s.throughput.cv)})`,
+    ],
+    [
+      "Latency",
+      `p50 ${ms(s.latency.p50)} · p90 ${ms(s.latency.p90)} · p99 ${ms(s.latency.p99)} · p99.9 ${ms(s.latency.p999)} · mean ${ms(s.latency.mean)}`,
+    ],
+    [
+      "Server CPU",
+      s.cpuPerRequest === undefined || s.serverCpu === undefined
+        ? "n/a"
+        : `${us(s.cpuPerRequest)} per request (${pct(s.serverCpu)} of one core)`,
+    ],
+    [
+      "Server memory",
+      s.peakRss === undefined || s.avgRss === undefined
+        ? "n/a"
+        : `${mib(s.peakRss)} peak RSS (${mib(s.avgRss)} average under load)`,
+    ],
+  ]);
+  const rounds = table(
+    ["Round", ...SERVER_ROUND],
+    "r".repeat(SERVER_ROUND.length + 1),
+    b.rounds.map((r) => [`${r.round}`, ...serverRoundCells(r)]),
+  );
+  const { target } = b;
+  const request =
+    target.kind === "http"
+      ? [
+          "Request (plus a `host` header):",
+          "",
+          fence(
+            [
+              `${target.request.method} ${target.request.path} HTTP/1.1`,
+              ...Object.entries(target.request.headers).map(([name, value]) => `${name}: ${value}`),
+              ...(target.request.body ? ["", target.request.body] : []),
+            ].join("\n"),
+            "http",
+          ),
+        ]
+      : // Plain fence: oxfmt would reformat a `json` one.
+        ["Frame (the id increments with each request):", "", fence(frame(target.message, 1))];
 
   return [
-    ...sections,
-    "Run on:",
-    ...environments.map((environment) => ["```", environment, "```"].join("\n")),
-  ].join("\n\n");
-}
-
-function serverDetails(benchmark: ServerBenchmarkResult): string {
-  const s = benchmark.summary;
-  const lines = [
-    table(
-      ["Metric", "Result"],
-      ["l", "l"],
-      [
-        [
-          "Throughput",
-          `**${int(s.throughput.median)} req/s** (median; rounds range ${int(s.throughput.min)} – ${int(s.throughput.max)}, CV ${pct(s.throughput.cv)})`,
-        ],
-        [
-          "Latency",
-          `p50 ${ms(s.latency.p50)} · p90 ${ms(s.latency.p90)} · p99 ${ms(s.latency.p99)} · p99.9 ${ms(s.latency.p999)} · mean ${ms(s.latency.mean)}`,
-        ],
-        [
-          "Server CPU",
-          s.cpuPerRequest === undefined || s.serverCpu === undefined
-            ? "n/a"
-            : `${us(s.cpuPerRequest)} per request (${pct(s.serverCpu)} of one core used)`,
-        ],
-        [
-          "Server memory",
-          s.peakRss === undefined || s.avgRss === undefined
-            ? "n/a"
-            : `${mib(s.peakRss)} peak RSS (${mib(s.avgRss)} average while under load)`,
-        ],
-      ],
+    summary,
+    "",
+    details(
+      "Per-round results, request and response",
+      "Drift: throughput change from the first to the second half of the measurement window. A server still warming up rises in nearly every round.",
+      "",
+      rounds,
+      "",
+      ...request,
+      "",
+      "Response:",
+      "",
+      fence(b.sampleResponse),
+      "",
     ),
-  ];
-
-  const rounds = table(
-    [
-      "Round",
-      "Req/s",
-      "Drift",
-      "p50",
-      "p99",
-      "Max",
-      "Server CPU",
-      "CPU / req",
-      "Peak RSS",
-      "Steal",
-      "Load gen CPU",
-    ],
-    ["r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r"],
-    benchmark.rounds.map((r) => [
-      `${r.round}`,
-      int(r.throughput),
-      r.drift === undefined ? "n/a" : signedPct(r.drift),
-      ms(r.latency.p50),
-      ms(r.latency.p99),
-      ms(r.latency.max),
-      r.serverCpu === undefined ? "n/a" : pct(r.serverCpu),
-      r.cpuPerRequest === undefined ? "n/a" : us(r.cpuPerRequest),
-      r.peakRss === undefined ? "n/a" : mib(r.peakRss),
-      r.steal === undefined ? "n/a" : pct(r.steal),
-      pct(r.clientCpu),
-    ]),
-  );
-
-  const http = benchmark.payload.http;
-  const request = http
-    ? [
-        "Request sent by the load generator (plus a `Host` header):",
-        "",
-        "```http",
-        `${http.method} ${http.path} HTTP/1.1`,
-        ...Object.entries(http.headers).map(([name, value]) => `${name}: ${value}`),
-        ...(http.body ? ["", http.body] : []),
-        "```",
-      ]
-    : [
-        "Frame sent by the load generator (the id is incremented for every request on a connection):",
-        "",
-        // Plain fences: a `json` fence would be pretty-printed by the formatter, hiding the wire format.
-        "```",
-        benchmark.payload.ws ?? "",
-        "```",
-      ];
-
-  lines.push(
-    "",
-    "<details>",
-    "<summary>Per-round results, request and response</summary>",
-    "",
-    "Drift is the throughput change from the first to the second half of the measurement window. A server still warming up shows a positive drift in nearly every round; single rounds vary with machine noise.",
-    "",
-    rounds,
-    "",
-    ...request,
-    "",
-    "Response:",
-    "",
-    "```",
-    benchmark.sampleResponse,
-    "```",
-    "",
-    "</details>",
-  );
-
-  return lines.join("\n");
+  ].join("\n");
 }
 
-function typecheckDetails(benchmark: TypecheckBenchmarkResult): string {
-  const s = benchmark.summary;
-  const summary = table(
-    ["Metric", "Result"],
-    ["l", "l"],
+function typecheckDetails(b: TypecheckBenchmarkResult): string {
+  const s = b.summary;
+  const summary = table(["Metric", "Result"], "ll", [
     [
-      [
-        "Check time",
-        `**${seconds(s.checkTime.median)}** (median; rounds range ${seconds(s.checkTime.min)} – ${seconds(s.checkTime.max)})`,
-      ],
-      [
-        "Total time",
-        `${seconds(s.totalTime.median)} (process wall time ${seconds(s.wallTime.median)})`,
-      ],
-      [
-        "Types / instantiations",
-        `${int(s.diagnostics.Types ?? 0)} / ${int(s.diagnostics.Instantiations ?? 0)}`,
-      ],
-      ["Memory used", mib(s.diagnostics["Memory used"] ?? Number.NaN)],
+      "Check time",
+      `**${seconds(s.checkTime.median)}** (median; rounds ${seconds(s.checkTime.min)} – ${seconds(s.checkTime.max)})`,
     ],
-  );
-
+    [
+      "Total time",
+      `${seconds(s.totalTime.median)} (process wall time ${seconds(s.wallTime.median)})`,
+    ],
+    [
+      "Types / instantiations",
+      `${int(s.diagnostics.Types ?? Number.NaN)} / ${int(s.diagnostics.Instantiations ?? Number.NaN)}`,
+    ],
+    ["Memory used", mib(s.diagnostics["Memory used"] ?? Number.NaN)],
+  ]);
   const diagnostics = Object.entries(s.diagnostics)
     .map(([key, value]) => {
       const formatted =
@@ -369,33 +344,24 @@ function typecheckDetails(benchmark: TypecheckBenchmarkResult): string {
       return `${`${key}:`.padEnd(16)}${formatted.padStart(12)}`;
     })
     .join("\n");
-
   const rounds = table(
-    ["Round", "Check time", "Total time", "Wall time"],
-    ["r", "r", "r", "r"],
-    benchmark.rounds.map((r) => [
-      `${r.round}`,
-      seconds(r.checkTime),
-      seconds(r.totalTime),
-      seconds(r.wallTime),
-    ]),
+    ["Round", ...TYPECHECK_ROUND],
+    "rrrr",
+    b.rounds.map((r) => [`${r.round}`, ...typecheckRoundCells(r)]),
   );
 
   return [
     summary,
     "",
-    "<details>",
-    "<summary>Per-round results and full diagnostics</summary>",
-    "",
-    rounds,
-    "",
-    "Median `--extendedDiagnostics` output:",
-    "",
-    "```",
-    diagnostics,
-    "```",
-    "",
-    "</details>",
+    details(
+      "Per-round results and full diagnostics",
+      rounds,
+      "",
+      "Median `--extendedDiagnostics` output:",
+      "",
+      fence(diagnostics),
+      "",
+    ),
   ].join("\n");
 }
 
@@ -404,7 +370,6 @@ interface ClinicData {
   analysis: { interval: [number, number]; issues: Record<string, string | Record<string, string>> };
 }
 
-/** Names Clinic.js Doctor uses for its alerts. */
 const CLINIC_LABELS: Record<string, string> = {
   delay: "event loop delay",
   cpu: "CPU usage",
@@ -412,14 +377,12 @@ const CLINIC_LABELS: Record<string, string> = {
   loopUtilization: "event loop utilization",
 };
 
-/** Summarises the data embedded in a Clinic.js Doctor HTML report over its analysis interval. */
+/** Summarises a Clinic.js Doctor report over its analysis interval. */
 function clinicSection(root: string, name: string): string | undefined {
   const file = path.join(root, "benchmarks", name, ".clinic", "report.clinic-doctor.html");
   if (!fs.existsSync(file)) return undefined;
-
-  const html = fs.readFileSync(file, "utf8");
   const json = /<script type="application\/json" id="clinic-data">([\s\S]*?)<\/script>/.exec(
-    html,
+    fs.readFileSync(file, "utf8"),
   )?.[1];
   if (!json) return undefined;
 
@@ -428,7 +391,6 @@ function clinicSection(root: string, name: string): string | undefined {
   const samples = data.processStat.filter((s) => s.timestamp >= from && s.timestamp <= to);
   if (samples.length === 0) return undefined;
 
-  const avg = (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length;
   const cpu = samples.map((s) => s.cpu);
   const rss = samples.map((s) => s.memory.rss);
   const delay = samples.map((s) => s.delay);
@@ -445,45 +407,41 @@ function clinicSection(root: string, name: string): string | undefined {
   const link = `benchmarks/${name}/.clinic/report.clinic-doctor.html`;
 
   return [
-    `Clinic.js Doctor profile under the same load, generated with \`pnpm bench:profile\` ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/${link})). The profiler slows the server down, so use it to compare behaviour, not throughput:`,
+    `Clinic.js Doctor profile from \`pnpm bench:profile\`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/${link})); the profiler slows the server, so compare behaviour, not throughput:`,
     "",
-    `- CPU usage: ${pct(avg(cpu))} on average (max ${pct(Math.max(...cpu))})`,
+    `- CPU usage: ${pct(mean(cpu))} on average (max ${pct(Math.max(...cpu))})`,
     `- Memory (RSS): ${mib(Math.min(...rss))} – ${mib(Math.max(...rss))}`,
-    `- Event loop delay: ${ms(avg(delay))} on average (max ${ms(Math.max(...delay))})`,
-    `- Detected issues: ${issues.length ? issues.join(", ") : "none"}${saturated ? " — high event loop utilization is expected here, since the load keeps the server saturated" : ""}`,
+    `- Event loop delay: ${ms(mean(delay))} on average (max ${ms(Math.max(...delay))})`,
+    `- Detected issues: ${issues.length ? issues.join(", ") : "none"}${saturated ? " (expected: the load keeps the server saturated)" : ""}`,
   ].join("\n");
 }
 
-function benchmarkSection(root: string, result: GroupResult, name: string): string {
-  const benchmark = (
-    result.benchmarks as (ServerBenchmarkResult | TypecheckBenchmarkResult)[]
-  ).find((b) => b.name === name)!;
-  const versions = Object.entries(benchmark.versions)
-    .map(([pkg, v]) => `${pkg}@${v}`)
-    .join(", ");
+const find = <T extends BenchmarkResult>(benchmarks: T[], name: string) =>
+  benchmarks.find((b) => b.name === name)!;
 
-  const clinic = result.group.kind === "typecheck" ? undefined : clinicSection(root, name);
+function benchmarkSection(root: string, result: GroupResult, name: string): string {
+  const benchmark = find<BenchmarkResult>(result.benchmarks, name);
+  const versions = Object.entries(benchmark.versions).map(([pkg, v]) => `${pkg}@${v}`);
+  const clinic = isTypecheck(result) ? undefined : clinicSection(root, name);
 
   return [
-    `${benchmark.library} ${version(benchmark)} — ${result.date.slice(0, 10)} (${versions})`,
+    `${benchmark.library} ${Object.values(benchmark.versions)[0]} — ${result.date.slice(0, 10)} (${versions.join(", ")})`,
     "",
-    result.group.kind === "typecheck"
-      ? typecheckDetails(benchmark as TypecheckBenchmarkResult)
-      : serverDetails(benchmark as ServerBenchmarkResult),
+    isTypecheck(result)
+      ? typecheckDetails(find(result.benchmarks, name))
+      : serverDetails(find(result.benchmarks, name)),
     "",
-    `Compared with the rest of the \`${result.group.id}\` group, measured in the same session:`,
+    `The whole \`${result.group.id}\` group, measured in the same session:`,
     "",
     groupTable(result, name),
     "",
     `<sub>${describeRun(result)}</sub>`,
-    ...warningLines(groupWarnings(result)),
+    ...warningLines(result),
     ...(clinic ? ["", clinic] : []),
     "",
     "Run on:",
     "",
-    "```",
-    describeEnvironment(result),
-    "```",
+    fence(describeEnvironment(result)),
   ].join("\n");
 }
 
@@ -504,18 +462,15 @@ export function resultsFile(root: string, groupId: string): string {
   return path.join(root, "results", `${groupId}.json`);
 }
 
-/** Regenerates the result sections of the root README and of every benchmark README. */
+/** Regenerates the results in the root README and in every benchmark README. */
 export function writeReadmes(root: string): void {
-  const resultFiles = groups
+  const files = groups
     .map((group) => resultsFile(root, group.id))
     .filter((file) => fs.existsSync(file));
-  const results = resultFiles.map(
-    (file) => JSON.parse(fs.readFileSync(file, "utf8")) as GroupResult,
-  );
+  const results = files.map((file) => JSON.parse(fs.readFileSync(file, "utf8")) as GroupResult);
 
   const written = [path.join(root, "README.md")];
   replaceBetween(written[0]!, "results", rootSection(results));
-
   for (const result of results) {
     for (const benchmark of result.benchmarks) {
       const readme = path.join(root, "benchmarks", benchmark.name, "README.md");
@@ -524,9 +479,7 @@ export function writeReadmes(root: string): void {
     }
   }
 
-  // Keep generated files in the repository's formatting (aligned tables), so `pnpm fmt:check` passes.
-  execFileSync(process.execPath, [packageBin(root, "oxfmt"), ...written, ...resultFiles], {
-    cwd: root,
-    stdio: "ignore",
-  });
+  // oxfmt aligns the tables, so `pnpm fmt:check` passes.
+  const [node, oxfmt] = packageBin(root, "oxfmt");
+  run(node, [oxfmt, ...written, ...files], { cwd: root });
 }

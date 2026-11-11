@@ -1,263 +1,7 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
-/** Parses a Linux CPU list such as `0-3,6` into `[0, 1, 2, 3, 6]`. */
-export function parseCpuList(list: string): number[] {
-  const cpus = new Set<number>();
-
-  for (const part of list.split(",")) {
-    const trimmed = part.trim();
-    if (!trimmed) continue;
-
-    const [from, to] = trimmed.split("-").map((value) => Number.parseInt(value, 10));
-    if (from === undefined || Number.isNaN(from)) {
-      throw new Error(`Invalid CPU list: ${list}`);
-    }
-
-    for (let cpu = from; cpu <= (to ?? from); cpu++) cpus.add(cpu);
-  }
-
-  return [...cpus].sort((a, b) => a - b);
-}
-
-/** Formats `[0, 1, 2, 3, 6]` as `0-3,6`. */
-export function formatCpuList(cpus: readonly number[]): string {
-  const ranges: string[] = [];
-  let start = cpus[0];
-  let prev = cpus[0];
-
-  for (const cpu of [...cpus.slice(1), Number.NaN]) {
-    if (cpu === (prev ?? 0) + 1) {
-      prev = cpu;
-      continue;
-    }
-    if (start !== undefined) ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
-    start = cpu;
-    prev = cpu;
-  }
-
-  return ranges.join(",");
-}
-
-function hasCommand(command: string): boolean {
-  try {
-    execFileSync(command, ["--version"], { stdio: "ignore" });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** CPUs this process may run on (respects cgroup/affinity restrictions on Linux). */
-export function allowedCpus(): number[] {
-  try {
-    const status = fs.readFileSync("/proc/self/status", "utf8");
-    const match = /^Cpus_allowed_list:\s*(.+)$/m.exec(status);
-    if (match?.[1]) return parseCpuList(match[1]);
-  } catch {
-    // not Linux
-  }
-
-  return Array.from({ length: os.availableParallelism() }, (_, index) => index);
-}
-
-export const canPinCpus = process.platform === "linux" && hasCommand("taskset");
-
-export interface CpuLayout {
-  /** CPUs the server under test is pinned to. */
-  server: number[];
-  /** CPUs the runner and its load generator are pinned to. */
-  client: number[];
-  /** CPUs the type checker is pinned to. */
-  typecheck: number[];
-  /** CPUs left unused: SMT siblings of the server's CPUs, which would share its core. */
-  idle: number[];
-  pinned: boolean;
-}
-
-/**
- * Groups `cpus` by physical core, using the SMT topology Linux exposes (one entry per core,
- * listing its hardware threads). Without topology information every CPU is its own core.
- */
-export function physicalCores(cpus: readonly number[]): number[][] {
-  const cores = new Map<string, number[]>();
-  for (const cpu of cpus) {
-    const topology = `/sys/devices/system/cpu/cpu${cpu}/topology`;
-    const siblings =
-      tryRead(`${topology}/core_cpus_list`) ?? tryRead(`${topology}/thread_siblings_list`);
-    const key = siblings ? formatCpuList(parseCpuList(siblings)) : `${cpu}`;
-    cores.set(key, [...(cores.get(key) ?? []), cpu]);
-  }
-  return [...cores.values()].sort((a, b) => a[0]! - b[0]!);
-}
-
-/**
- * Picks disjoint CPU sets for the server and the load generator so they never compete for the
- * same core, SMT siblings included: the server gets one hardware thread of the last physical core
- * and that core's other threads stay idle. The load generator takes up to two CPUs on other cores,
- * one per core first, leaving the first core to the OS (interrupts, housekeeping) whenever possible.
- * Without SMT, on 4+ CPUs this is: server = last CPU, load generator = the two CPUs before it.
- *
- * `tsc` runs single-threaded on the server's CPU (no server runs during type-checking).
- */
-export function defaultCpuLayout(
-  cpus: readonly number[] = allowedCpus(),
-  cores: number[][] = physicalCores(cpus),
-): CpuLayout {
-  if (!canPinCpus || cpus.length < 2) {
-    return { server: [...cpus], client: [...cpus], typecheck: [...cpus], idle: [], pinned: false };
-  }
-
-  if (cores.length < 2) {
-    // A single physical core: the server and the load generator cannot be kept apart.
-    const server = [cpus.at(-1)!];
-    return { server, client: [cpus.at(-2)!], typecheck: server, idle: [], pinned: true };
-  }
-
-  const serverCore = cores.at(-1)!;
-  const server = [serverCore.at(-1)!];
-  const idle = serverCore.filter((cpu) => cpu !== server[0]);
-
-  const others = cores.slice(0, -1);
-  // Keep the first core free for the OS when there is another one; if not, at least its first CPU.
-  const pool =
-    others.length > 1 ? others.slice(1) : others[0]!.length > 1 ? [others[0]!.slice(1)] : others;
-  const candidates: number[] = [];
-  const nearestFirst = [...pool].reverse();
-  for (let thread = 0; thread < Math.max(...pool.map((core) => core.length)); thread++) {
-    for (const core of nearestFirst) if (core[thread] !== undefined) candidates.push(core[thread]!);
-  }
-  const client = candidates.slice(0, 2).sort((a, b) => a - b);
-
-  return { server, client, typecheck: server, idle, pinned: true };
-}
-
-/** CPUs of `cpus` that share a physical core with one of `others`. */
-export function sharedCores(
-  cpus: readonly number[],
-  others: readonly number[],
-  cores: number[][] = physicalCores([...new Set([...cpus, ...others])]),
-): number[] {
-  return cpus.filter((cpu) =>
-    cores.some((core) => core.includes(cpu) && core.some((other) => others.includes(other))),
-  );
-}
-
-/** Prefixes a command with `taskset` so it (and every thread it spawns) runs on `cpus` only. */
-export function pinned(
-  command: string,
-  args: string[],
-  cpus: readonly number[] | undefined,
-): [string, string[]] {
-  if (!cpus || !canPinCpus) return [command, args];
-  return ["taskset", ["-c", formatCpuList(cpus), command, ...args]];
-}
-
-/**
- * Pins every thread of the current process to `cpus`; threads created later (worker threads,
- * the libuv pool) inherit the mask. Done in place, so no second process can outlive this one.
- */
-export function pinCurrentProcess(cpus: readonly number[]): void {
-  const expected = formatCpuList(cpus);
-  const threadsPinned = () =>
-    fs.readdirSync("/proc/self/task").every((task) => {
-      const status = tryRead(`/proc/self/task/${task}/status`); // undefined: the thread exited
-      const list = status && /^Cpus_allowed_list:\s*(.+)$/m.exec(status)?.[1];
-      return !list || formatCpuList(parseCpuList(list)) === expected;
-    });
-
-  for (let attempt = 0; attempt < 3; attempt++) {
-    execFileSync("taskset", ["-a", "-p", "-c", expected, String(process.pid)], { stdio: "ignore" });
-    if (threadsPinned()) return;
-  }
-  throw new Error(`Could not pin every thread of the runner to CPUs ${expected}`);
-}
-
-/**
- * Path of an installed package's executable script. Running it with `process.execPath` works on
- * every platform, unlike the shell shims in `node_modules/.bin` (which need a shell on Windows).
- */
-export function packageBin(root: string, pkg: string, name = pkg): string {
-  const dir = path.join(root, "node_modules", pkg);
-  const manifest = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf8"));
-  const bin = typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.[name];
-  if (typeof bin !== "string") throw new Error(`${pkg} has no "${name}" executable`);
-  return path.join(dir, bin);
-}
-
-let clockTicksPerSecond: number | undefined;
-
-function clockTicks(): number {
-  if (clockTicksPerSecond === undefined) {
-    try {
-      clockTicksPerSecond = Number.parseInt(execFileSync("getconf", ["CLK_TCK"]).toString(), 10);
-    } catch {
-      clockTicksPerSecond = 100;
-    }
-    if (!Number.isFinite(clockTicksPerSecond) || clockTicksPerSecond <= 0)
-      clockTicksPerSecond = 100;
-  }
-  return clockTicksPerSecond;
-}
-
-/** Total CPU time (user + system, all threads) consumed by a process so far, in seconds. */
-export function processCpuSeconds(pid: number): number | undefined {
-  try {
-    const stat = fs.readFileSync(`/proc/${pid}/stat`, "utf8");
-    // The command name (field 2) may contain spaces, so parse from the closing parenthesis.
-    const fields = stat.slice(stat.lastIndexOf(")") + 2).split(" ");
-    const utime = Number(fields[11]);
-    const stime = Number(fields[12]);
-    return (utime + stime) / clockTicks();
-  } catch {
-    return undefined;
-  }
-}
-
-/** Current and peak resident set size of a process, in bytes. */
-export function processMemory(pid: number): { rss: number; peakRss: number } | undefined {
-  try {
-    const status = fs.readFileSync(`/proc/${pid}/status`, "utf8");
-    const rss = /^VmRSS:\s*(\d+) kB$/m.exec(status)?.[1];
-    const peakRss = /^VmHWM:\s*(\d+) kB$/m.exec(status)?.[1];
-    if (rss === undefined || peakRss === undefined) return undefined;
-    return { rss: Number(rss) * 1024, peakRss: Number(peakRss) * 1024 };
-  } catch {
-    return undefined;
-  }
-}
-
-export interface CpuTimes {
-  total: number;
-  steal: number;
-}
-
-/**
- * Aggregated jiffies of the given CPUs from `/proc/stat`. Steal time is the time the hypervisor
- * ran something else while this VM wanted the CPU — a direct measure of noisy neighbours.
- */
-export function cpuTimes(cpus: readonly number[]): CpuTimes | undefined {
-  try {
-    const stat = fs.readFileSync("/proc/stat", "utf8");
-    const result = { total: 0, steal: 0 };
-
-    for (const cpu of cpus) {
-      const line = new RegExp(`^cpu${cpu} (.+)$`, "m").exec(stat)?.[1];
-      if (!line) return undefined;
-      const values = line.trim().split(/\s+/).map(Number);
-      // user nice system idle iowait irq softirq steal guest guest_nice — guest time is already
-      // included in user/nice, so only the first eight fields are summed.
-      result.total += values.slice(0, 8).reduce((a, b) => a + b, 0);
-      result.steal += values[7] ?? 0;
-    }
-
-    return result;
-  } catch {
-    return undefined;
-  }
-}
 
 function tryRead(file: string): string | undefined {
   try {
@@ -277,11 +21,211 @@ function tryExec(command: string, args: string[]): string | undefined {
   }
 }
 
+/** Runs a command and returns its stdout; throws with its output if it fails. */
+export function run(
+  command: string,
+  args: string[],
+  options: { cwd?: string; env?: NodeJS.ProcessEnv; timeout?: number } = {},
+): string {
+  const result = spawnSync(command, args, { ...options, encoding: "utf8" });
+  if (result.status !== 0) {
+    const reason =
+      result.error?.message ??
+      (result.signal ? `killed by ${result.signal}` : `exit code ${result.status}`);
+    const where = options.cwd ? ` in ${options.cwd}` : "";
+    throw new Error(
+      `\`${[command, ...args].join(" ")}\` failed${where} (${reason}):\n${result.stdout ?? ""}${result.stderr ?? ""}`,
+    );
+  }
+  return result.stdout;
+}
+
+function packageJson(root: string, pkg: string) {
+  return JSON.parse(fs.readFileSync(path.join(root, "node_modules", pkg, "package.json"), "utf8"));
+}
+
+export function packageVersion(root: string, pkg: string): string {
+  return packageJson(root, pkg).version;
+}
+
+/** Command running an installed package's bin script with this Node.js (no shell shim needed). */
+export function packageBin(root: string, pkg: string, name = pkg): [string, string] {
+  const { bin } = packageJson(root, pkg);
+  const script = typeof bin === "string" ? bin : bin?.[name];
+  if (typeof script !== "string") throw new Error(`${pkg} has no "${name}" executable`);
+  return [process.execPath, path.join(root, "node_modules", pkg, script)];
+}
+
+/** Parses a Linux CPU list such as `0-3,6`. */
+export function parseCpuList(list: string): number[] {
+  const cpus = new Set<number>();
+  for (const part of list.split(",")) {
+    if (!part.trim()) continue;
+    const [from, to = from] = part.split("-").map((value) => Number.parseInt(value, 10));
+    if (from === undefined || Number.isNaN(from) || Number.isNaN(to)) {
+      throw new Error(`Invalid CPU list: ${list}`);
+    }
+    for (let cpu = from; cpu <= to!; cpu++) cpus.add(cpu);
+  }
+  return [...cpus].sort((a, b) => a - b);
+}
+
+/** Formats `[0, 1, 2, 3, 6]` as `0-3,6`. */
+export function formatCpuList(cpus: readonly number[]): string {
+  const ranges: string[] = [];
+  for (let i = 0; i < cpus.length; i++) {
+    const start = cpus[i]!;
+    while (cpus[i + 1] === cpus[i]! + 1) i++;
+    ranges.push(start === cpus[i] ? `${start}` : `${start}-${cpus[i]}`);
+  }
+  return ranges.join(",");
+}
+
+/** CPUs this process may run on (affinity and cgroup limits included). */
+export function allowedCpus(): number[] {
+  const list = tryRead("/proc/self/status")?.match(/^Cpus_allowed_list:\s*(.+)$/m)?.[1];
+  return list
+    ? parseCpuList(list)
+    : Array.from({ length: os.availableParallelism() }, (_, index) => index);
+}
+
+/** Groups `cpus` by physical core (SMT siblings together). */
+function physicalCores(cpus: readonly number[]): number[][] {
+  const cores = new Map<string, number[]>();
+  for (const cpu of cpus) {
+    const topology = `/sys/devices/system/cpu/cpu${cpu}/topology`;
+    const key =
+      tryRead(`${topology}/core_cpus_list`) ??
+      tryRead(`${topology}/thread_siblings_list`) ??
+      `${cpu}`;
+    cores.set(key, [...(cores.get(key) ?? []), cpu]);
+  }
+  return [...cores.values()];
+}
+
+export interface CpuLayout {
+  /** The server under test, and `tsc`. */
+  server: number[];
+  /** The runner and its load generator threads. */
+  client: number[];
+  /** SMT siblings of the server, left unused. */
+  idle: number[];
+  /** Client CPUs on the server's physical core. */
+  shared: number[];
+}
+
+/**
+ * Default: the server gets one thread of the last physical core, the load generator up to two
+ * CPUs on other cores (one per core first), sparing the first core for the OS.
+ */
+export function pickCpus(
+  cpus: readonly number[],
+  cores: number[][],
+  overrides: { server?: number[]; client?: number[] } = {},
+): CpuLayout {
+  const server = overrides.server ?? [cores.at(-1)!.at(-1)!];
+  const others = cores.filter((core) => !core.some((cpu) => server.includes(cpu)));
+  let client = overrides.client;
+  if (!client && others.length === 0) {
+    client = cpus.filter((cpu) => !server.includes(cpu)).slice(-2);
+  } else if (!client) {
+    const pool =
+      others.length > 1 ? others.slice(1) : others[0]!.length > 1 ? [others[0]!.slice(1)] : others;
+    const nearestFirst = [...pool].reverse();
+    const candidates: number[] = [];
+    for (let thread = 0; thread < Math.max(...pool.map((core) => core.length)); thread++) {
+      for (const core of nearestFirst)
+        if (core[thread] !== undefined) candidates.push(core[thread]!);
+    }
+    client = candidates.slice(0, 2).sort((a, b) => a - b);
+  }
+  if (server.some((cpu) => client.includes(cpu))) {
+    throw new Error("The server and load generator CPUs must not overlap");
+  }
+
+  const serverCores = cores.filter((core) => core.some((cpu) => server.includes(cpu))).flat();
+  return {
+    server,
+    client,
+    idle: serverCores.filter((cpu) => !server.includes(cpu) && !client.includes(cpu)),
+    shared: client.filter((cpu) => serverCores.includes(cpu)),
+  };
+}
+
+/** The CPU layout, or `undefined` when nothing can be pinned (needs Linux, `taskset`, 2+ CPUs). */
+export function cpuLayout(overrides: {
+  server?: number[];
+  client?: number[];
+}): CpuLayout | undefined {
+  const cpus = allowedCpus();
+  if (process.platform !== "linux" || cpus.length < 2 || !tryExec("taskset", ["--version"])) {
+    return undefined;
+  }
+  for (const cpu of [...(overrides.server ?? []), ...(overrides.client ?? [])]) {
+    if (!cpus.includes(cpu))
+      throw new Error(`CPU ${cpu} is not available (allowed: ${formatCpuList(cpus)})`);
+  }
+  return pickCpus(cpus, physicalCores(cpus), overrides);
+}
+
+/** Prefixes a command with `taskset`, so it and all its threads run on `cpus` only. */
+export function pinned(
+  command: string,
+  args: string[],
+  cpus?: readonly number[],
+): [string, string[]] {
+  return cpus ? ["taskset", ["-c", formatCpuList(cpus), command, ...args]] : [command, args];
+}
+
+/** Pins every thread of this process to `cpus`; threads created later inherit the mask. */
+export function pinCurrentProcess(cpus: readonly number[]): void {
+  execFileSync("taskset", ["-a", "-p", "-c", formatCpuList(cpus), String(process.pid)], {
+    stdio: "ignore",
+  });
+}
+
+/** Unit of the CPU times in /proc/<pid>/stat on every Linux architecture Node.js runs on. */
+const USER_HZ = 100;
+
+/** CPU time (user + system, all threads) a process has used, in seconds. */
+export function processCpuSeconds(pid: number): number | undefined {
+  const stat = tryRead(`/proc/${pid}/stat`);
+  if (!stat) return undefined;
+  // The command name may contain spaces: parse after its closing parenthesis.
+  const fields = stat.slice(stat.lastIndexOf(")") + 2).split(" ");
+  return (Number(fields[11]) + Number(fields[12])) / USER_HZ;
+}
+
+/** Current and peak resident set size of a process, in bytes. */
+export function processMemory(pid: number): { rss: number; peakRss: number } | undefined {
+  const status = tryRead(`/proc/${pid}/status`);
+  const kib = (field: string) =>
+    Number(status?.match(new RegExp(`^${field}:\\s*(\\d+) kB$`, "m"))?.[1]) * 1024;
+  const rss = kib("VmRSS");
+  const peakRss = kib("VmHWM");
+  return Number.isNaN(rss) || Number.isNaN(peakRss) ? undefined : { rss, peakRss };
+}
+
+/** Total and steal jiffies of `cpus` (steal: time the hypervisor gave to other VMs). */
+export function cpuTimes(cpus: readonly number[]): { total: number; steal: number } | undefined {
+  const stat = tryRead("/proc/stat");
+  if (!stat) return undefined;
+  const times = { total: 0, steal: 0 };
+  for (const cpu of cpus) {
+    const line = stat.match(new RegExp(`^cpu${cpu} (.+)$`, "m"))?.[1];
+    if (!line) return undefined;
+    // user nice system idle iowait irq softirq steal (guest time is already in user and nice)
+    const values = line.trim().split(/\s+/).slice(0, 8).map(Number);
+    times.total += values.reduce((a, b) => a + b, 0);
+    times.steal += values[7] ?? 0;
+  }
+  return times;
+}
+
 export interface Environment {
   cpu: string;
-  /** Logical CPUs (hardware threads). */
+  /** Logical CPUs. */
   cores: number;
-  /** Hardware threads per physical core (2 or more with SMT / Hyper-Threading). */
   threadsPerCore?: number;
   memory: string;
   os: string;
@@ -292,22 +236,20 @@ export interface Environment {
 }
 
 export function environment(): Environment {
-  const cpus = os.cpus();
   const lscpu = tryExec("lscpu", []);
-  const hypervisor = lscpu && /^Hypervisor vendor:\s*(.+)$/m.exec(lscpu)?.[1];
-  const threadsPerCore = lscpu && /^Thread\(s\) per core:\s*(\d+)$/m.exec(lscpu)?.[1];
-  const pnpm = /\bpnpm\/(\S+)/.exec(process.env.npm_config_user_agent ?? "")?.[1];
+  const hypervisor = lscpu?.match(/^Hypervisor vendor:\s*(.+)$/m)?.[1];
+  const threadsPerCore = lscpu?.match(/^Thread\(s\) per core:\s*(\d+)$/m)?.[1];
   const distro = tryRead("/etc/os-release")?.match(/^PRETTY_NAME="?([^"\n]+)"?$/m)?.[1];
 
   return {
-    cpu: cpus[0]?.model.trim() ?? "unknown",
-    cores: cpus.length,
+    cpu: os.cpus()[0]?.model.trim() ?? "unknown",
+    cores: os.cpus().length,
     threadsPerCore: threadsPerCore ? Number(threadsPerCore) : undefined,
     memory: `${Math.round(os.totalmem() / 1024 / 1024)} MB`,
     os: `${distro ?? os.type()} (${os.type()} ${os.release()} ${os.arch()})`,
     virtualization: hypervisor ? `${hypervisor} VM` : undefined,
     node: process.version,
     v8: process.versions.v8,
-    pnpm,
+    pnpm: /\bpnpm\/(\S+)/.exec(process.env.npm_config_user_agent ?? "")?.[1],
   };
 }

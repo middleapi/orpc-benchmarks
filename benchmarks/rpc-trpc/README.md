@@ -1,18 +1,17 @@
 # tRPC RPC Runtime Benchmark
 
 - Evaluates the performance of tRPC's RPC runtime over HTTP on a project with **6 procedures** and **3 routers**, served by tRPC's standalone adapter (`createHTTPServer`) with the SuperJSON transformer.
-- Uses [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod so the results reflect tRPC's performance without external influences.
-- The load generator sends exactly the `GET` request the official client (`httpLink`) produces for `nested.procedure_1.query("hello world")`, captured by [scripts/client.ts](./scripts/client.ts) at the start of each run.
-- Comparable to the other benchmarks in the `rpc` group: [rpc-orpc](../rpc-orpc), [rpc-trpc](../rpc-trpc).
+- Inputs use a no-op [Standard Schema](https://github.com/standard-schema/standard-schema) validator rather than a schema library such as Zod, so the result reflects tRPC itself.
+- Load: the `GET` request the official client (`httpLink`) sends for `nested.procedure_1.query("hello world")`, captured by [scripts/client.ts](./scripts/client.ts) at the start of each run.
 
 ## How to run
 
 ```bash
-pnpm bench          # this benchmark only; the numbers are printed, not saved
+pnpm bench          # this benchmark only (printed, not saved)
 pnpm bench:profile  # Clinic.js Doctor report at .clinic/report.clinic-doctor.html
 ```
 
-The committed results come from running the whole `rpc` group in one session from the repository root (`pnpm bench rpc`), so every library in the group is measured under the same conditions. See the [methodology](../../README.md#methodology).
+Committed results come from `pnpm bench rpc` at the repository root, which measures the whole group in one session; see the [methodology](../../README.md#methodology).
 
 ## Latest Result
 

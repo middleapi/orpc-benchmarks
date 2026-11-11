@@ -1,5 +1,4 @@
-import type { Group } from "./config.ts";
-import type { HttpRequestSpec } from "./load/index.ts";
+import type { LoadTarget } from "./load/types.ts";
 import type { LatencySummary } from "./stats.ts";
 import type { Environment } from "./system.ts";
 
@@ -13,45 +12,45 @@ export interface Spread {
 
 export interface ServerRound {
   round: number;
-  /** Completed requests per second during the measurement window. */
+  /** Requests per second during the measurement window. */
   throughput: number;
   requests: number;
-  /** Milliseconds. */
   latency: LatencySummary;
-  perSecond: { min: number; max: number; stdev: number };
-  /** Throughput change from the first to the second half of the window (warm-up check). */
+  /** Throughput change from the first to the second half of the window. */
   drift?: number;
-  /** Server CPU time / wall time during the measurement window (1 = one full core). */
+  /** Server CPU time / wall time (1 = one core). */
   serverCpu?: number;
-  /** Server CPU time per completed request, in microseconds. */
+  /** Server CPU time per request, in microseconds. */
   cpuPerRequest?: number;
   /** Bytes. */
   peakRss?: number;
   avgRss?: number;
-  /** Share of the server CPUs' time stolen by the hypervisor during the window. */
+  /** Share of the server CPUs' time taken by the hypervisor. */
   steal?: number;
-  /** CPU used by the busiest load generator thread (1 = one full core). */
+  /** CPU used by the busiest load generator thread (1 = one core). */
   clientCpu: number;
 }
 
 export interface ServerSummary {
   throughput: Spread;
-  /** Medians across rounds, in milliseconds. */
+  /** Medians across rounds. */
   latency: LatencySummary;
   serverCpu?: number;
   cpuPerRequest?: number;
   peakRss?: number;
   avgRss?: number;
+  /** Maximum across rounds. */
   steal?: number;
+  /** Maximum across rounds. */
   clientCpu: number;
 }
 
 export interface TypecheckRound {
   round: number;
-  /** Seconds, as reported by `--extendedDiagnostics`. */
+  /** Seconds, from `--extendedDiagnostics`. */
   checkTime: number;
   totalTime: number;
-  /** Wall-clock time of the whole `tsc` process, in seconds. */
+  /** Wall time of the whole `tsc` process, in seconds. */
   wallTime: number;
   diagnostics: Record<string, number>;
 }
@@ -60,57 +59,72 @@ export interface TypecheckSummary {
   checkTime: Spread;
   totalTime: Spread;
   wallTime: Spread;
-  /** Median of each `--extendedDiagnostics` counter. */
+  /** Median of each `--extendedDiagnostics` value. */
   diagnostics: Record<string, number>;
 }
 
-interface BenchmarkResultBase {
+export interface BenchmarkResult {
   name: string;
   library: string;
   versions: Record<string, string>;
 }
 
-export interface ServerBenchmarkResult extends BenchmarkResultBase {
-  /** What the load generator sent (captured from the official client when available). */
-  payload: { http?: HttpRequestSpec; ws?: string };
+export interface ServerBenchmarkResult extends BenchmarkResult {
+  /** What the load generator sent. */
+  target: LoadTarget;
   sampleResponse: string;
   rounds: ServerRound[];
   summary: ServerSummary;
-  /** Problems the runner detected in these rounds (e.g. server not saturated, warm-up too short). */
-  warnings?: string[];
 }
 
-export interface TypecheckBenchmarkResult extends BenchmarkResultBase {
+export interface TypecheckBenchmarkResult extends BenchmarkResult {
   rounds: TypecheckRound[];
   summary: TypecheckSummary;
 }
 
-export interface Settings {
+/** CPU lists, absent when nothing was pinned. `idle`: SMT siblings of the server, left unused. */
+interface ServerCpus {
+  server: string;
+  idle?: string;
+}
+
+export interface ServerSettings {
   rounds: number;
   warmupSeconds: number;
   durationSeconds: number;
   connections: number;
   loadThreads: number;
-  pinned: boolean;
-  /** CPU lists; `idle` are SMT siblings of the server's CPUs, kept free. */
-  cpus: { server: string; client: string; typecheck: string; idle?: string };
-  /** Arguments every `tsc` round ran with (typecheck group). */
-  tscArgs?: string[];
-  /** Problems with the CPU layout (no pinning, server sharing a physical core). */
-  warnings?: string[];
+  cpus?: ServerCpus & { client: string };
 }
+
+export interface TypecheckSettings {
+  rounds: number;
+  tscArgs: string[];
+  /** `tsc` runs on the server's CPU. */
+  cpus?: ServerCpus;
+}
+
+type GroupInfo<Kind> = { id: string; title: string; workload: string; kind: Kind };
 
 export type GroupResult = {
   date: string;
   environment: Environment;
-  settings: Settings;
+  /** Problems the runner detected (CPU layout, saturation, warm-up, noise). */
+  warnings: string[];
 } & (
   | {
-      group: Pick<Group, "id" | "title" | "workload"> & { kind: "http" | "ws" };
+      group: GroupInfo<"http" | "ws">;
+      settings: ServerSettings;
       benchmarks: ServerBenchmarkResult[];
     }
   | {
-      group: Pick<Group, "id" | "title" | "workload"> & { kind: "typecheck" };
+      group: GroupInfo<"typecheck">;
+      settings: TypecheckSettings;
       benchmarks: TypecheckBenchmarkResult[];
     }
 );
+
+export type TypecheckGroupResult = Extract<GroupResult, { settings: TypecheckSettings }>;
+
+export const isTypecheck = (result: GroupResult): result is TypecheckGroupResult =>
+  result.group.kind === "typecheck";

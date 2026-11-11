@@ -2,7 +2,7 @@
 
 Compares the performance of [oRPC](https://orpc.unnoq.com) with similar libraries.
 
-Benchmarks are organized into groups. Benchmarks in the same group share the same workload and are directly comparable; benchmarks in different groups are not.
+Benchmarks in the same group share one workload and are compared with each other; benchmarks in different groups are not.
 
 | Group       | Benchmarks                                                                                   | What it measures                                              |
 | ----------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
@@ -15,52 +15,50 @@ Benchmarks are organized into groups. Benchmarks in the same group share the sam
 
 ```bash
 pnpm install
-pnpm bench                  # every group, about 30 minutes with the default rounds
+pnpm bench                  # every group, about 30 minutes
 pnpm bench rpc ws           # selected groups
 pnpm bench rpc --rounds 3   # quicker, noisier
-pnpm bench:profile rpc-orpc # Clinic.js Doctor report for one benchmark (or a whole group)
+pnpm bench:profile rpc-orpc # Clinic.js Doctor report for a benchmark or group
 ```
 
-A complete group run overwrites its `results/<group>.json` and regenerates the results in this README and in the benchmark READMEs (`pnpm bench:report` regenerates them from the JSON files only). Running a single benchmark (`cd benchmarks/<benchmark> && pnpm bench`) prints its numbers without saving them, since only libraries measured in the same session are compared. `pnpm bench --help` lists every option.
+A complete group run saves `results/<group>.json` and updates every README; `pnpm bench:report` rebuilds the READMEs from the JSON alone. A single benchmark (`pnpm bench rpc-orpc`, or `pnpm bench` in its folder) is printed, not saved: only libraries measured in the same session are compared. `pnpm bench --help` lists every option.
 
-For the most stable numbers, run on an otherwise idle Linux machine (WSL works too): CPU pinning needs `taskset`, and the server CPU and memory columns are read from `/proc`. On macOS the benchmarks still run, unpinned, noisier and without those columns.
+Use an idle Linux machine (WSL works) for stable numbers: pinning needs `taskset`, and the server CPU and memory columns come from `/proc`. On macOS the benchmarks run unpinned, noisier and without those columns.
 
 ## Methodology
 
-The runner ([scripts/bench.ts](./scripts/bench.ts)) is built to make numbers comparable within a group and reproducible across runs:
+The runner ([scripts/bench.ts](./scripts/bench.ts)):
 
-- **Pinned toolchain.** pnpm and Node.js versions are pinned through `devEngines` in [package.json](./package.json), so `pnpm bench` always runs on the same Node.js/V8 build, which is downloaded if needed.
-- **Isolated CPUs.** On Linux, the server under test runs alone on a dedicated CPU and the load generator on two others (`taskset`), with the first CPU left to the OS, so they never compete for CPU time and the numbers are single-core server throughput. The layout follows the SMT (Hyper-Threading) topology: the server's sibling hardware thread is kept idle and the load generator runs on other physical cores; when the machine has too few cores for that, the runner warns and saves the warning with the results. CPU steal time is recorded to expose noisy neighbours on virtual machines.
-- **Fresh process, warm-up, measurement.** Every round starts a new server process, warms it up under full load, then measures for 10 s with the load still running, so there is no ramp-up or ramp-down inside the measurement window. Each round also compares the two halves of its measurement window (the drift in the per-round tables), and the runner warns when throughput was still rising: by more than 3% at the median, in at least 3 rounds out of 4, since a single round's drift varies with machine noise. Per-second throughput curves of fresh processes show oRPC and Hono at full speed within about 3 s and tRPC within about 6–7 s, so the default warm-up is 10 s. With 10 s, the drift check still found tRPC's WebSocket server a few percent faster in the second half of the window (+4.8% median, rising in 8 of 10 rounds), so the `ws` group warms up for 30 s; that removed the drift, and the comparison moved by less than the round-to-round noise.
-- **Many interleaved rounds.** 10 rounds per server benchmark and 30 per type-check, alternating the order between libraries (A B, B A, …) so slow drift of the machine affects all of them alike. Results are medians, with the min – max range across rounds; differences whose ranges overlap are flagged as within noise.
-- **Real client payloads.** For the `rpc` and `ws` groups, the payload is captured at the start of each run from the library's official client (`scripts/client.ts` in each benchmark), so the load always matches what the installed client version sends; that call also checks the end-to-end result, including revived `Date`s. The `openapi` group sends the same REST request to both libraries.
-- **Strict response checks.** Under load, every request must be answered, and every response is checked for its status code, framing and content. A run with any invalid response, unanswered request or connection error is rejected instead of reported, so a server answering with errors or dropping requests can never look fast.
-- **Precise latency.** Each connection runs a closed loop with one request in flight, like autocannon, but latency is recorded with sub-microsecond resolution. autocannon records whole milliseconds, which is why earlier results showed `0 ms` latencies.
-- **Server cost, not just speed.** Server CPU time per request and RSS are read from `/proc` without instrumenting the server. The runner warns when the server is not saturated or when the load generator gets close to its own limit, either of which would make the throughput number meaningless.
-- **WebSocket load without client-side delays.** The `ws` group replays the official clients' frames over plain WebSocket connections. Driving the load through the official clients measured the clients instead: tRPC's WebSocket client waits a timer tick (at least 1 ms) before sending each batch, so with one request in flight per connection the tRPC server sat idle most of the time.
-- **Profiling separate from measuring.** [Clinic.js Doctor](https://clinicjs.org/doctor/) reports come from `pnpm bench:profile`, under the same payload and load; benchmark numbers are always measured without a profiler attached.
-- **Type-checking.** Both generated projects declare every input with the same vendored [Standard Schema](https://github.com/standard-schema/standard-schema) interface ([schema.ts](./benchmarks/typecheck-orpc/src/schema.ts), copied from `@standard-schema/spec` just as Zod and ArkType ship it), so neither library is handed its own declaration, which TypeScript would match faster, and no schema library's types dilute the comparison. A guard file in each project ([checks.ts](./benchmarks/typecheck-orpc/src/checks.ts)) must produce type errors for wrong inputs and outputs, so a library cannot look fast by inferring `any`. `tsc` runs single-threaded (`--singleThreaded`) on the dedicated server CPU: by default TypeScript 7 runs 4 checkers in parallel, whatever the number of cores, and each rebuilds the shared router and client types, so time, type counts and memory would depend on that setting rather than measure each library's type work once. The projects are type-checked once to warm the file cache, then 30 times per library, interleaved: a round takes only a few seconds, and its time varies by about 10% from round to round (CPU time included), so the extra rounds keep the median stable. Times come from `tsc --extendedDiagnostics`; type and instantiation counts are deterministic and can be compared across machines.
+- **Pinned toolchain.** `devEngines` in [package.json](./package.json) pins pnpm and Node.js (downloaded if needed), so every run uses the same V8.
+- **Isolated CPUs.** On Linux, `taskset` gives the server one dedicated CPU and the load generator two others, leaving the first CPU to the OS; results are single-core server throughput. With SMT, the server's sibling thread stays idle and the load generator uses other physical cores; with too few cores, the runner warns and saves the warning with the results. CPU steal time is recorded to expose noisy VM neighbours.
+- **Fresh process, warm-up, measurement.** Each round starts a new server, warms it up under full load, then measures for 10 s without stopping the load. oRPC and Hono reach full speed within about 3 s and tRPC within 6–7 s, so the warm-up is 10 s; the `ws` group uses 30 s because tRPC's WebSocket server was still speeding up after 10 s. The runner warns when throughput rose from the first to the second half of the window (the drift column) by more than 3% at the median, in at least 3 of 4 rounds.
+- **Interleaved rounds.** 10 rounds per server benchmark and 30 per type-check, in alternating order (A B, B A, …) so machine drift affects every library alike. Results are medians with the min – max range; overlapping ranges are marked "within noise".
+- **Real client payloads.** For `rpc` and `ws`, each run first captures the payload from the library's official client (`scripts/client.ts`); that call also checks the end-to-end result, revived `Date`s included. `ws` replays the captured frames over plain WebSocket connections rather than through the clients: tRPC's client waits a timer tick (at least 1 ms) before sending each batch, which left its server mostly idle. `openapi` sends the same REST request to both libraries.
+- **Strict checks.** Every request must be answered and every response is checked (status, framing, content); a run with any invalid response, unanswered request or connection error fails instead of being reported.
+- **Precise latency.** Each connection keeps one request in flight (a closed loop, like autocannon), timed with sub-microsecond resolution instead of autocannon's whole milliseconds.
+- **Server cost.** CPU time per request and RSS are read from `/proc`, without instrumenting the server. The runner warns when the server is not saturated or the load generator nears its own limit.
+- **Separate profiling.** [Clinic.js Doctor](https://clinicjs.org/doctor/) reports come from `pnpm bench:profile` under the same load; measured runs have no profiler attached.
+- **Type-checking.** Both generated projects declare inputs with the same vendored [Standard Schema](https://github.com/standard-schema/standard-schema) interface ([schema.ts](./benchmarks/typecheck-orpc/src/schema.ts), copied from `@standard-schema/spec` as Zod and ArkType do): neither library gets its own declaration, which TypeScript would match faster, and no schema library's types dilute the result. A guard file ([checks.ts](./benchmarks/typecheck-orpc/src/checks.ts)) must produce type errors, so inferring `any` fails the check. `tsc --singleThreaded` runs on the server's CPU: TypeScript 7's default 4 parallel checkers each rebuild the shared types, so time, counts and memory would depend on that setting. After one cache-warming run, each project is checked 30 times, interleaved, since rounds vary by about 10%. Times come from `--extendedDiagnostics`; type and instantiation counts are deterministic and comparable across machines.
 
 ## Latest results
 
-Produced with `pnpm bench` (default settings) on a dedicated 4-vCPU cloud VM. Before the run, every other process, the unbound kernel workqueues and all movable IRQs were moved to CPU 0, so CPUs 1–3 ran nothing but the benchmark:
+Produced with `pnpm bench` (default settings) on a dedicated 4-vCPU cloud VM, with every other process, the unbound kernel workqueues and movable IRQs moved to CPU 0, so CPUs 1–3 ran only the benchmark:
 
 <details>
 <summary>CPU isolation commands (optional, Linux, as root)</summary>
 
 ```bash
-# Move every other process and thread to CPU 0 (per-CPU kernel threads refuse, which is fine).
+# Move every process to CPU 0 (per-CPU kernel threads refuse; that is fine).
 for pid in $(ps -eo pid=); do taskset -a -p -c 0 "$pid" > /dev/null 2>&1; done
-# Run unbound kernel work and device interrupts on CPU 0 as well (irqbalance, if installed,
-# would move the interrupts back).
+# Unbound kernel work and IRQs too (irqbalance would move the IRQs back).
 echo 1 > /sys/devices/virtual/workqueue/cpumask
 systemctl stop irqbalance 2> /dev/null
 for irq in /proc/irq/[0-9]*; do echo 1 > "$irq/smp_affinity" 2> /dev/null; done
-# The shell is now confined to CPU 0 too: widen it again for the run (here, 4 CPUs).
+# This shell is now on CPU 0 as well: give the run all CPUs back.
 taskset -c 0-3 pnpm bench
 ```
 
-Undo it by setting the masks back to all CPUs (e.g. `taskset -a -p -c 0-3 <pid>`, `echo f > ...`) and starting irqbalance again if it was running, or reboot.
+To undo, reboot, or set the masks back to all CPUs (`taskset -a -p -c 0-3 <pid>`, `echo f > ...`) and restart irqbalance if it was running.
 
 </details>
 

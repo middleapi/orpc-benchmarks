@@ -1,18 +1,17 @@
 # oRPC WebSocket Runtime Benchmark
 
 - Evaluates the performance of oRPC's RPC runtime over **WebSocket** on a project with **6 procedures** and **3 routers**, served by `RPCHandler` from `@orpc/server/websocket` on a [`ws`](https://github.com/websockets/ws) server.
-- Uses [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod so the results reflect oRPC's performance without external influences.
-- At the start of each run, [scripts/client.ts](./scripts/client.ts) calls `nested.procedure_1("hello world")` twice through the official oRPC WebSocket client and records the frames it sends. The load generator then replays that frame (with a fresh id per request) over 10 plain WebSocket connections, one request in flight each, so the numbers reflect the server rather than client-side scheduling — mirroring how the HTTP benchmarks send raw requests.
-- Comparable to the other benchmarks in the `ws` group: [ws-orpc](../ws-orpc), [ws-trpc](../ws-trpc).
+- Inputs use a no-op [Standard Schema](https://github.com/standard-schema/standard-schema) validator rather than a schema library such as Zod, so the result reflects oRPC itself.
+- Load: the frame the official oRPC WebSocket client sends for `nested.procedure_1("hello world")`, captured by [scripts/client.ts](./scripts/client.ts) at the start of each run and replayed with a fresh id per request over 10 plain WebSocket connections, one request in flight each.
 
 ## How to run
 
 ```bash
-pnpm bench          # this benchmark only; the numbers are printed, not saved
+pnpm bench          # this benchmark only (printed, not saved)
 pnpm bench:profile  # Clinic.js Doctor report at .clinic/report.clinic-doctor.html
 ```
 
-The committed results come from running the whole `ws` group in one session from the repository root (`pnpm bench ws`), so every library in the group is measured under the same conditions. See the [methodology](../../README.md#methodology).
+Committed results come from `pnpm bench ws` at the repository root, which measures the whole group in one session; see the [methodology](../../README.md#methodology).
 
 ## Latest Result
 

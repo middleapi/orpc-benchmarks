@@ -1,18 +1,17 @@
 # Hono OpenAPI Runtime Benchmark
 
 - Evaluates the performance of Hono's runtime on a project with **6 routes** matching the procedures in [openapi-orpc](../openapi-orpc); every route is exposed as a RESTful `GET` endpoint that reads its input from query parameters, served by `@hono/node-server`.
-- Each route uses a pass-through `hono/validator`, mirroring the no-op Standard Schema used in the oRPC benchmark, so the results reflect Hono's performance without external influences.
+- Each route uses a pass-through `hono/validator`, mirroring the no-op Standard Schema of the oRPC benchmark, so the result reflects Hono itself.
 - Load: `GET /nested/procedure_1?who=hello%20world`, the same request as the oRPC benchmark; both return the same JSON body.
-- Comparable to the other benchmarks in the `openapi` group: [openapi-orpc](../openapi-orpc), [openapi-hono](../openapi-hono).
 
 ## How to run
 
 ```bash
-pnpm bench          # this benchmark only; the numbers are printed, not saved
+pnpm bench          # this benchmark only (printed, not saved)
 pnpm bench:profile  # Clinic.js Doctor report at .clinic/report.clinic-doctor.html
 ```
 
-The committed results come from running the whole `openapi` group in one session from the repository root (`pnpm bench openapi`), so every library in the group is measured under the same conditions. See the [methodology](../../README.md#methodology).
+Committed results come from `pnpm bench openapi` at the repository root, which measures the whole group in one session; see the [methodology](../../README.md#methodology).
 
 ## Latest Result
 

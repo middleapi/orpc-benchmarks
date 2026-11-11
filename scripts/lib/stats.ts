@@ -1,10 +1,10 @@
-export function sum(values: readonly number[]): number {
+export function sum(values: Iterable<number>): number {
   let total = 0;
   for (const value of values) total += value;
   return total;
 }
 
-export function mean(values: readonly number[]): number {
+export function mean(values: ArrayLike<number> & Iterable<number>): number {
   return values.length === 0 ? Number.NaN : sum(values) / values.length;
 }
 
@@ -12,9 +12,7 @@ export function mean(values: readonly number[]): number {
 export function stdev(values: readonly number[]): number {
   if (values.length < 2) return 0;
   const avg = mean(values);
-  let squares = 0;
-  for (const value of values) squares += (value - avg) ** 2;
-  return Math.sqrt(squares / (values.length - 1));
+  return Math.sqrt(sum(values.map((value) => (value - avg) ** 2)) / (values.length - 1));
 }
 
 export function median(values: readonly number[]): number {
@@ -24,15 +22,15 @@ export function median(values: readonly number[]): number {
   return sorted.length % 2 === 1 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2;
 }
 
-/** Nearest-rank percentile of an already sorted array. */
+/** Nearest-rank percentile of a sorted array. */
 export function percentile(sorted: ArrayLike<number>, p: number): number {
   if (sorted.length === 0) return Number.NaN;
   const rank = Math.ceil((p / 100) * sorted.length);
   return sorted[Math.min(sorted.length, Math.max(1, rank)) - 1]!;
 }
 
+/** Milliseconds. */
 export interface LatencySummary {
-  /** All values in milliseconds. */
   mean: number;
   p50: number;
   p90: number;
@@ -41,19 +39,14 @@ export interface LatencySummary {
   max: number;
 }
 
-/** Summarises latency samples given in microseconds; the result is in milliseconds. */
-export function summarizeLatencies(samplesUs: Float64Array): LatencySummary {
-  const sorted = samplesUs.slice().sort();
-  const toMs = (us: number) => us / 1000;
-  let total = 0;
-  for (const value of sorted) total += value;
-
+export function summarizeLatencies(latencies: readonly number[]): LatencySummary {
+  const sorted = Float64Array.from(latencies).sort();
   return {
-    mean: toMs(total / sorted.length),
-    p50: toMs(percentile(sorted, 50)),
-    p90: toMs(percentile(sorted, 90)),
-    p99: toMs(percentile(sorted, 99)),
-    p999: toMs(percentile(sorted, 99.9)),
-    max: toMs(sorted[sorted.length - 1] ?? Number.NaN),
+    mean: mean(sorted),
+    p50: percentile(sorted, 50),
+    p90: percentile(sorted, 90),
+    p99: percentile(sorted, 99),
+    p999: percentile(sorted, 99.9),
+    max: sorted.at(-1) ?? Number.NaN,
   };
 }

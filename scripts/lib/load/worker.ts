@@ -1,101 +1,76 @@
-/**
- * Load generator worker. Each connection runs a closed loop — send one request, wait for the
- * complete response, send the next — like autocannon without pipelining. Latency is recorded with
- * `performance.now()` (sub-microsecond resolution), every response is validated and every request
- * must be answered, so a server answering with errors or dropping requests can never look fast.
- */
+/** Load generator thread: closed-loop connections; every response is validated, every request must be answered. */
 import net from "node:net";
+import { setTimeout as sleep } from "node:timers/promises";
 import { parentPort, workerData } from "node:worker_threads";
 import { WebSocket } from "ws";
-import { DRAIN_TIMEOUT_MS, type WorkerConfig, type WorkerReport } from "./types.ts";
+import {
+  DRAIN_TIMEOUT_MS,
+  type HttpRequestSpec,
+  type WorkerConfig,
+  type WorkerMessage,
+  type WsMessageTemplate,
+  frame,
+} from "./types.ts";
 
 const config = workerData as WorkerConfig;
-const port = parentPort!;
 const markers = config.expect.map((marker) => Buffer.from(marker));
+const post = (message: WorkerMessage) => parentPort!.postMessage(message);
+const text = (data: Buffer) => data.toString("utf8", 0, 300);
 
 let running = true;
 let recording = false;
 let measureStart = 0;
-let measureEnd = 0;
-let threadCpuStart = 0;
-
-let completed = 0;
-let invalid = 0;
-let errors = 0;
-/** Requests sent and not answered yet, over all connections. */
 let inFlight = 0;
-/** Requests whose connection was closed during the final drain before they were answered. */
-let unansweredOnClose = 0;
-let firstFailure: string | undefined;
+let drained: (() => void) | undefined;
+let failed = false;
+let sample: string | undefined;
+const latencies: number[] = [];
 const perSecond: number[] = [];
 
-let samples = new Float64Array(1 << 18);
-let sampleCount = 0;
-
-function threadCpuMicros(): number {
-  // `process.threadCpuUsage()` reports this thread only (Node >= 23.9).
-  const usage = (process as any).threadCpuUsage?.() ?? process.cpuUsage();
-  return usage.user + usage.system;
-}
-
+/** Reports the first failure; the runner then aborts the run. */
 function fail(reason: string): void {
-  invalid++;
-  firstFailure ??= reason;
+  if (failed) return;
+  failed = true;
+  post({ type: "failed", reason });
 }
 
-function record(sentAt: number): void {
-  if (!recording) return;
-  const now = performance.now();
+/** One connection with at most one request in flight: the next is sent when the last is answered. */
+class ClosedLoop {
+  waiting = false;
+  sentAt = 0;
+  readonly transport: { send(): void; close(): void };
 
-  if (sampleCount === samples.length) {
-    const grown = new Float64Array(samples.length * 2);
-    grown.set(samples);
-    samples = grown;
-  }
-  samples[sampleCount++] = (now - sentAt) * 1000;
-  completed++;
-
-  const second = Math.floor((now - measureStart) / 1000);
-  perSecond[second] = (perSecond[second] ?? 0) + 1;
-}
-
-function containsMarkers(body: Buffer): boolean {
-  return markers.every((marker) => body.includes(marker));
-}
-
-let openConnections = 0;
-let resolveDrained: (() => void) | undefined;
-
-function connectionClosed(): void {
-  openConnections--;
-  if (openConnections === 0) resolveDrained?.();
-}
-
-/** The one request a connection may have in flight (closed loop). */
-class RequestSlot {
-  #waiting = false;
-
-  get waiting(): boolean {
-    return this.#waiting;
+  constructor(transport: ClosedLoop["transport"]) {
+    this.transport = transport;
   }
 
-  sent(): void {
-    this.#waiting = true;
+  next(): void {
+    if (!running) return this.transport.close();
+    this.waiting = true;
     inFlight++;
+    this.sentAt = performance.now();
+    this.transport.send();
   }
 
-  answered(): void {
-    if (!this.#waiting) return;
-    this.#waiting = false;
+  /** Handles a complete response; `problem` is set when its framing or status is wrong. */
+  answered(body: Buffer, problem?: string): void {
+    if (!this.waiting) return fail(`response with no request in flight: ${text(body)}`);
+    this.waiting = false;
     inFlight--;
-  }
+    if (problem) return fail(problem);
+    if (!markers.every((marker) => body.includes(marker))) {
+      return fail(`unexpected response: ${text(body)}`);
+    }
 
-  /** The connection closed; a request still waiting for its answer will never get one. */
-  closed(): void {
-    if (!this.#waiting) return;
-    this.answered();
-    // While running, the close itself is already counted as a connection error.
-    if (!running) unansweredOnClose++;
+    sample ??= body.toString("utf8");
+    if (recording) {
+      const now = performance.now();
+      latencies.push(now - this.sentAt);
+      const second = Math.floor((now - measureStart) / 1000);
+      perSecond[second] = (perSecond[second] ?? 0) + 1;
+    }
+    if (!running && inFlight === 0) drained?.();
+    this.next();
   }
 }
 
@@ -106,20 +81,9 @@ class RequestSlot {
 const CRLF = Buffer.from("\r\n");
 const HEADER_END = Buffer.from("\r\n\r\n");
 
-type ParsedResponse =
-  | {
-      status: number;
-      /** The response body (de-chunked for `Transfer-Encoding: chunked`). */
-      body: Buffer;
-      /** Offset right after the response in the buffer. */
-      end: number;
-    }
-  | { malformed: string };
+type ParsedResponse = { status: number; body: Buffer; end: number } | { malformed: string };
 
-/**
- * Parses one complete HTTP response at the start of `buffer`. Returns `undefined` while it is
- * incomplete, and `{ malformed }` for framing that can never become a valid response.
- */
+/** Parses the HTTP response at the start of `buffer`; `undefined` while it is incomplete. */
 function parseResponse(buffer: Buffer): ParsedResponse | undefined {
   const headerEnd = buffer.indexOf(HEADER_END);
   if (headerEnd === -1) return undefined;
@@ -142,8 +106,7 @@ function parseResponse(buffer: Buffer): ParsedResponse | undefined {
     for (;;) {
       const lineEnd = buffer.indexOf(CRLF, position);
       if (lineEnd === -1) return undefined;
-      // chunk-size [ chunk-ext ] CRLF
-      const line = buffer.toString("latin1", position, lineEnd);
+      const line = buffer.toString("latin1", position, lineEnd); // chunk-size [ chunk-ext ]
       const hex = /^[\da-f]{1,8}/i.exec(line)?.[0];
       if (!hex)
         return { malformed: `invalid chunk size line ${JSON.stringify(line.slice(0, 40))}` };
@@ -151,7 +114,7 @@ function parseResponse(buffer: Buffer): ParsedResponse | undefined {
       const dataStart = lineEnd + 2;
 
       if (size === 0) {
-        // Last chunk, optionally followed by trailers, terminated by an empty line.
+        // Last chunk, then optional trailers and an empty line.
         if (buffer.length < dataStart + 2) return undefined;
         const body = chunks.length === 1 ? chunks[0]! : Buffer.concat(chunks);
         if (buffer[dataStart] === 13 && buffer[dataStart + 1] === 10) {
@@ -174,225 +137,117 @@ function parseResponse(buffer: Buffer): ParsedResponse | undefined {
   return { status, body: buffer.subarray(bodyStart, bodyStart), end: bodyStart };
 }
 
-function startHttpConnection(target: Extract<WorkerConfig["target"], { kind: "http" }>): void {
-  const { method, path, headers, body } = target.request;
-  let head = `${method} ${path} HTTP/1.1\r\nHost: ${target.host}:${target.port}\r\n`;
+function httpRequest({ method, path, headers, body }: HttpRequestSpec): Buffer {
+  let head = `${method} ${path} HTTP/1.1\r\nhost: 127.0.0.1:${config.port}\r\n`;
   for (const [name, value] of Object.entries(headers)) head += `${name}: ${value}\r\n`;
-  if (body !== undefined) head += `Content-Length: ${Buffer.byteLength(body)}\r\n`;
-  const request = Buffer.from(`${head}\r\n${body ?? ""}`);
+  if (body !== undefined) head += `content-length: ${Buffer.byteLength(body)}\r\n`;
+  return Buffer.from(`${head}\r\n${body ?? ""}`);
+}
 
-  const socket = net.connect({ host: target.host, port: target.port, noDelay: true });
-  const slot = new RequestSlot();
+function httpConnection(request: Buffer): void {
+  const socket = net.connect({ host: "127.0.0.1", port: config.port, noDelay: true });
+  const loop = new ClosedLoop({ send: () => socket.write(request), close: () => socket.end() });
   let pending: Buffer | undefined;
-  let sentAt = 0;
-  let ready = false;
-  /** Set when this side drops the connection after an invalid response (not a server close). */
-  let discarded = false;
-  openConnections++;
 
-  const discard = () => {
-    discarded = true;
-    socket.destroy();
-  };
-
-  const send = () => {
-    if (!running) {
-      socket.end();
-      return;
-    }
-    sentAt = performance.now();
-    slot.sent();
-    socket.write(request);
-  };
-
-  socket.on("connect", send);
-
+  socket.on("connect", () => loop.next());
   socket.on("data", (chunk: Buffer) => {
-    if (!slot.waiting) {
-      fail(`received data with no request in flight: ${chunk.toString("utf8", 0, 300)}`);
-      discard();
-      return;
-    }
-
     const buffer = pending ? Buffer.concat([pending, chunk]) : chunk;
     const response = parseResponse(buffer);
-    if (!response) {
-      pending = buffer;
-      return;
-    }
-    pending = undefined;
-    slot.answered();
+    pending = response ? undefined : buffer;
+    if (!response) return;
 
     if ("malformed" in response) {
-      // The byte stream cannot be resynchronised: count the response as invalid and reconnect.
-      fail(`malformed response (${response.malformed}): ${buffer.toString("latin1", 0, 300)}`);
-      discard();
-      return;
-    }
-
-    if (response.end !== buffer.length) {
-      fail("received more bytes than one response");
-    } else if (response.status !== 200) {
-      fail(`HTTP ${response.status}: ${response.body.toString("utf8", 0, 300)}`);
-    } else if (!containsMarkers(response.body)) {
-      fail(`unexpected body: ${response.body.toString("utf8", 0, 300)}`);
+      loop.answered(
+        buffer,
+        `malformed response (${response.malformed}): ${buffer.toString("latin1", 0, 300)}`,
+      );
+    } else if (response.end !== buffer.length) {
+      loop.answered(response.body, "received more bytes than one response");
     } else {
-      record(sentAt);
+      loop.answered(
+        response.body,
+        response.status === 200 ? undefined : `HTTP ${response.status}: ${text(response.body)}`,
+      );
     }
-
-    if (!ready) {
-      ready = true;
-      connectionReady();
-    }
-    send();
   });
-
   socket.on("error", (error) => {
-    if (!running) return;
-    errors++;
-    firstFailure ??= `socket error: ${error.message}`;
+    if (running) fail(`socket error: ${error.message}`);
   });
-
   socket.on("close", () => {
-    slot.closed();
-    connectionClosed();
-    if (!running) return;
-    if (!discarded) {
-      errors++;
-      firstFailure ??= "connection closed by server";
-    }
-    startHttpConnection(target);
+    if (running) fail("connection closed by the server");
   });
 }
 
 // ---------------------------------------------------------------------------------------------
-// WebSocket (raw frames, captured from the official client)
+// WebSocket (the official client's frames)
 // ---------------------------------------------------------------------------------------------
 
-function startWsConnection(target: Extract<WorkerConfig["target"], { kind: "ws" }>): void {
-  const { prefix, suffix } = target.message;
-  const ws = new WebSocket(target.url, { perMessageDeflate: false });
-  const slot = new RequestSlot();
+function wsConnection(message: WsMessageTemplate): void {
+  const ws = new WebSocket(`ws://127.0.0.1:${config.port}`, { perMessageDeflate: false });
   let id = 0;
-  let sentAt = 0;
-  let ready = false;
-  openConnections++;
-
-  const send = () => {
-    if (!running) {
-      ws.close();
-      return;
-    }
-    id++;
-    sentAt = performance.now();
-    slot.sent();
-    ws.send(prefix + id + suffix);
-  };
-
-  ws.on("open", send);
-
-  ws.on("message", (data: Buffer, isBinary: boolean) => {
-    if (!slot.waiting) {
-      // Answering it would put a second request in flight on this connection.
-      fail(`received a message with no request in flight: ${data.toString("utf8", 0, 300)}`);
-      return;
-    }
-    slot.answered();
-
-    if (isBinary || !containsMarkers(data)) {
-      fail(`unexpected message: ${data.toString("utf8", 0, 300)}`);
-    } else {
-      record(sentAt);
-    }
-
-    if (!ready) {
-      ready = true;
-      connectionReady();
-    }
-    send();
+  const loop = new ClosedLoop({
+    send: () => ws.send(frame(message, ++id)),
+    close: () => ws.close(),
   });
 
+  ws.on("open", () => loop.next());
+  ws.on("message", (data: Buffer, isBinary: boolean) =>
+    loop.answered(data, isBinary ? `binary message: ${text(data)}` : undefined),
+  );
   ws.on("error", (error) => {
-    if (!running) return;
-    errors++;
-    firstFailure ??= `websocket error: ${error.message}`;
+    if (running) fail(`websocket error: ${error.message}`);
   });
-
   ws.on("close", () => {
-    slot.closed();
-    connectionClosed();
-    if (running) {
-      errors++;
-      firstFailure ??= "websocket closed by server";
-      startWsConnection(target);
-    }
+    if (running) fail("websocket closed by the server");
   });
 }
 
 // ---------------------------------------------------------------------------------------------
 
-let readyConnections = 0;
+const threadCpu = () => {
+  const { user, system } = process.threadCpuUsage();
+  return user + system;
+};
+let cpuStart = 0;
 
-function connectionReady(): void {
-  readyConnections++;
-  if (readyConnections === config.connections) port.postMessage({ type: "ready" });
-}
-
-port.on("message", async (message: "measure" | "stop") => {
+parentPort!.on("message", async (message: "measure" | "stop") => {
   if (message === "measure") {
-    completed = 0;
-    sampleCount = 0;
+    latencies.length = 0;
     perSecond.length = 0;
-    threadCpuStart = threadCpuMicros();
+    cpuStart = threadCpu();
     measureStart = performance.now();
     recording = true;
     return;
   }
 
-  measureEnd = performance.now();
+  const elapsedMs = performance.now() - measureStart;
   recording = false;
-  const threadCpu = threadCpuMicros() - threadCpuStart;
+  const cpu = threadCpu() - cpuStart;
   running = false;
 
-  // Let in-flight requests finish so the server sees clean disconnects.
-  let drainTimer: NodeJS.Timeout | undefined;
-  await Promise.race([
-    new Promise<void>((resolve) => {
-      resolveDrained = resolve;
-      if (openConnections === 0) resolve();
-    }),
-    new Promise<void>((resolve) => {
-      drainTimer = setTimeout(resolve, DRAIN_TIMEOUT_MS);
-    }),
-  ]);
-  clearTimeout(drainTimer);
+  // A request still unanswered stalled its connection, silently lowering the concurrency.
+  if (inFlight > 0) {
+    await Promise.race([
+      new Promise<void>((resolve) => (drained = resolve)),
+      sleep(DRAIN_TIMEOUT_MS),
+    ]);
+  }
+  if (inFlight > 0) return fail(`${inFlight} request(s) never got a response`);
 
-  // A closed loop never gives up on a request, so a request still waiting now stalled its
-  // connection (possibly since the warm-up), silently lowering the load below the stated concurrency.
-  const unanswered = inFlight + unansweredOnClose;
-  if (unanswered > 0) firstFailure ??= `${unanswered} request(s) never got a response`;
-
-  const elapsedMs = measureEnd - measureStart;
-  // Timers can fire a fraction of a millisecond early: round, so a 9,999.6 ms window has 10 slices.
-  // Every slice is reported, including empty ones.
-  const seconds = Math.round(elapsedMs / 1000);
-  const latencies = samples.slice(0, sampleCount);
-  const report: WorkerReport = {
+  post({
     type: "result",
-    completed,
-    elapsedMs,
     latencies,
-    perSecond: Array.from({ length: seconds }, (_, index) => perSecond[index] ?? 0),
-    invalid,
-    errors,
-    unanswered,
-    firstFailure,
-    cpuUtilization: threadCpu / (elapsedMs * 1000),
-  };
-  port.postMessage(report, [latencies.buffer]);
+    // Timers can fire slightly early: round, so 9,999.6 ms gives 10 one-second slices.
+    perSecond: Array.from({ length: Math.round(elapsedMs / 1000) }, (_, i) => perSecond[i] ?? 0),
+    elapsedMs,
+    cpuUtilization: cpu / (elapsedMs * 1000),
+    sample: sample ?? "",
+  });
 });
 
+const { target } = config;
+const request = target.kind === "http" ? httpRequest(target.request) : undefined;
 for (let i = 0; i < config.connections; i++) {
-  if (config.target.kind === "http") startHttpConnection(config.target);
-  else startWsConnection(config.target);
+  if (target.kind === "http") httpConnection(request!);
+  else wsConnection(target.message);
 }

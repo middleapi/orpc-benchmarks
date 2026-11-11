@@ -7,7 +7,7 @@
     "bench": "node scripts/bench.ts",
     "bench:report": "node scripts/bench.ts --report-only",
     "bench:profile": "node scripts/bench.ts --profile",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "repo:fix": "sherif --fix"

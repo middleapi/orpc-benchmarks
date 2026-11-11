@@ -1,18 +1,17 @@
 # tRPC WebSocket Runtime Benchmark
 
 - Evaluates the performance of tRPC's RPC runtime over **WebSocket** on a project with **6 procedures** and **3 routers**, served by `applyWSSHandler` on a [`ws`](https://github.com/websockets/ws) server with the SuperJSON transformer.
-- Uses [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod so the results reflect tRPC's performance without external influences.
-- At the start of each run, [scripts/client.ts](./scripts/client.ts) calls `nested.procedure_1.query("hello world")` twice through the official tRPC WebSocket client and records the frames it sends. The load generator then replays that frame (with a fresh id per request) over 10 plain WebSocket connections, one request in flight each. Driving the load through the official client would mostly measure its send delay: it waits a timer tick (at least 1 ms) before sending each batch, which left the server idle most of the time in earlier versions of this benchmark.
-- Comparable to the other benchmarks in the `ws` group: [ws-orpc](../ws-orpc), [ws-trpc](../ws-trpc).
+- Inputs use a no-op [Standard Schema](https://github.com/standard-schema/standard-schema) validator rather than a schema library such as Zod, so the result reflects tRPC itself.
+- Load: the frame the official tRPC WebSocket client sends for `nested.procedure_1.query("hello world")`, captured by [scripts/client.ts](./scripts/client.ts) at the start of each run and replayed with a fresh id per request over 10 plain WebSocket connections, one request in flight each. Driving the official client instead would mostly measure its send delay (a timer tick, at least 1 ms, before each batch).
 
 ## How to run
 
 ```bash
-pnpm bench          # this benchmark only; the numbers are printed, not saved
+pnpm bench          # this benchmark only (printed, not saved)
 pnpm bench:profile  # Clinic.js Doctor report at .clinic/report.clinic-doctor.html
 ```
 
-The committed results come from running the whole `ws` group in one session from the repository root (`pnpm bench ws`), so every library in the group is measured under the same conditions. See the [methodology](../../README.md#methodology).
+Committed results come from `pnpm bench ws` at the repository root, which measures the whole group in one session; see the [methodology](../../README.md#methodology).
 
 ## Latest Result
 
