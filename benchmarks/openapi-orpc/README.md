@@ -21,10 +21,10 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/openapi@2.0
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **23,981 req/s** (median; rounds 21,921 – 26,625, CV 6.3%)             |
-| Latency       | p50 0.40 ms · p90 0.59 ms · p99 0.91 ms · p99.9 1.35 ms · mean 0.42 ms |
-| Server CPU    | 41.5 µs per request (99% of one core)                                  |
-| Server memory | 90 MiB peak RSS (89 MiB average under load)                            |
+| Throughput    | **27,009 req/s** (median; rounds 21,983 – 29,990, CV 9.4%)             |
+| Latency       | p50 0.31 ms · p90 0.56 ms · p99 0.88 ms · p99.9 1.54 ms · mean 0.37 ms |
+| Server CPU    | 36.6 µs per request (99% of one core)                                  |
+| Server memory | 88 MiB peak RSS (88 MiB average under load)                            |
 
 <details>
 <summary>Per-round results, request and response</summary>
@@ -33,16 +33,16 @@ Drift: throughput change from the first to the second half of the measurement wi
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 25,797 |  -0.9% | 0.35 ms | 0.87 ms | 8.93 ms |        99% |   38.3 µs |   88 MiB |  0.8% |          36% |
-|     2 | 26,625 | +10.8% | 0.32 ms | 0.89 ms | 7.17 ms |        98% |   37.0 µs |   92 MiB |  1.1% |          41% |
-|     3 | 21,921 |  +4.7% | 0.42 ms | 0.94 ms | 5.24 ms |        99% |   45.4 µs |   90 MiB |  0.2% |          35% |
-|     4 | 22,989 |  +5.6% | 0.42 ms | 0.91 ms | 3.71 ms |        99% |   43.2 µs |   90 MiB |  0.5% |          35% |
-|     5 | 23,872 |  +4.7% | 0.40 ms | 0.91 ms | 2.89 ms |        99% |   41.6 µs |   90 MiB |  0.3% |          38% |
-|     6 | 25,459 |  -6.4% | 0.37 ms | 0.86 ms | 55.5 ms |        99% |   38.7 µs |   86 MiB |  0.3% |          39% |
-|     7 | 24,089 | -13.9% | 0.40 ms | 0.88 ms | 5.82 ms |        99% |   41.3 µs |   87 MiB |  0.3% |          36% |
-|     8 | 23,319 |  -6.2% | 0.40 ms | 0.92 ms | 11.3 ms |        99% |   42.5 µs |   86 MiB |  0.3% |          36% |
-|     9 | 23,039 |  +8.0% | 0.40 ms | 0.96 ms | 8.83 ms |        99% |   43.0 µs |   90 MiB |  0.4% |          36% |
-|    10 | 25,553 | +11.8% | 0.34 ms | 0.93 ms | 5.79 ms |        99% |   38.9 µs |   90 MiB |  0.5% |          35% |
+|     1 | 21,983 |  -7.5% | 0.42 ms | 0.95 ms | 4.84 ms |        99% |   45.1 µs |   89 MiB |  0.4% |          36% |
+|     2 | 23,924 |  -5.4% | 0.39 ms | 0.86 ms | 4.58 ms |        99% |   41.6 µs |   88 MiB |  0.1% |          37% |
+|     3 | 27,179 | +12.2% | 0.31 ms | 0.86 ms | 4.39 ms |        99% |   36.5 µs |   89 MiB |  0.3% |          40% |
+|     4 | 29,990 |  +0.5% | 0.29 ms | 0.78 ms | 4.79 ms |        99% |   32.9 µs |   89 MiB |  0.8% |          40% |
+|     5 | 27,737 |  +2.4% | 0.30 ms | 0.87 ms | 4.43 ms |        99% |   35.7 µs |   88 MiB |  0.5% |          38% |
+|     6 | 28,067 |  +2.3% | 0.30 ms | 0.90 ms | 27.7 ms |        98% |   35.0 µs |   87 MiB |  1.2% |          38% |
+|     7 | 29,445 |  +5.3% | 0.29 ms | 0.84 ms | 6.28 ms |        99% |   33.5 µs |   89 MiB |  0.7% |          41% |
+|     8 | 24,976 | -11.1% | 0.38 ms | 0.90 ms | 5.84 ms |        99% |   39.6 µs |   87 MiB |  0.7% |          39% |
+|     9 | 26,838 | +10.8% | 0.31 ms | 0.88 ms | 4.75 ms |        99% |   36.8 µs |   88 MiB |  0.8% |          41% |
+|    10 | 25,429 |  -7.7% | 0.36 ms | 0.94 ms | 16.9 ms |        99% |   38.9 µs |   87 MiB |  0.8% |          40% |
 
 Request (plus a `host` header):
 
@@ -55,7 +55,7 @@ accept: */*
 Response:
 
 ```
-{"name":"nested/procedure_1","date":"2026-11-11T11:29:15.603Z","input":{"who":"hello world"}}
+{"name":"nested/procedure_1","date":"2026-11-11T15:30:36.806Z","input":{"who":"hello world"}}
 ```
 
 </details>
@@ -64,23 +64,23 @@ The whole `openapi` group, measured in the same session:
 
 | Library                     | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :-------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [**oRPC**](../openapi-orpc) | 2.0.0-beta.50 | **23,981 req/s** | fastest                     |   21,921 – 26,625 |     0.40 ms |     0.91 ms |          41.5 µs |   90 MiB |
-| [Hono](../openapi-hono)     | 4.13.18       | **23,632 req/s** | 1.01× slower (within noise) |   21,069 – 26,717 |     0.40 ms |     0.95 ms |          41.9 µs |   92 MiB |
+| [**oRPC**](../openapi-orpc) | 2.0.0-beta.50 | **27,009 req/s** | fastest                     |   21,983 – 29,990 |     0.31 ms |     0.88 ms |          36.6 µs |   88 MiB |
+| [Hono](../openapi-hono)     | 4.13.18       | **24,543 req/s** | 1.10× slower (within noise) |   19,715 – 27,871 |     0.36 ms |     0.93 ms |          40.3 µs |   91 MiB |
 
 <sub>Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
 Clinic.js Doctor profile from `pnpm bench:profile`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-orpc/.clinic/report.clinic-doctor.html)); it is a single round, so compare behaviour, not throughput:
 
 - CPU usage: 99% on average
-- Memory (RSS): 80 MiB – 98 MiB
-- Event loop delay: 0.06 ms on average (max 7.70 ms)
+- Memory (RSS): 72 MiB – 92 MiB
+- Event loop delay: 0.11 ms on average (max 20.0 ms)
 - Detected issues: event loop utilization (performance; expected: the load keeps the server saturated)
 
 Run on:
 
 ```
 CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 CPUs, no SMT, KVM VM)
-Memory: 16086 MB
+Memory: 16086 MiB
 OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
 Node: v26.13.0 (V8 14.6.202.34-node.40)
 pnpm: 12.18.0

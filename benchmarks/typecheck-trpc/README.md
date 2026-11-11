@@ -21,64 +21,64 @@ tRPC 11.28.0 — 2026-11-11 (@trpc/server@11.28.0, @trpc/client@11.28.0, typescr
 
 | Metric                 | Result                                         |
 | :--------------------- | :--------------------------------------------- |
-| Check time             | **2.525 s** (median; rounds 2.097 s – 3.117 s) |
-| Total time             | 2.728 s (process wall time 3.394 s)            |
-| Types / instantiations | 227,281 / 1,086,257                            |
-| Memory used            | 227 MiB                                        |
+| Check time             | **2.499 s** (median; rounds 1.873 s – 3.040 s) |
+| Total time             | 2.722 s (process wall time 3.406 s)            |
+| Types / instantiations | 223,766 / 1,043,234                            |
+| Memory used            | 224 MiB                                        |
 
 <details>
 <summary>Per-round results and full diagnostics</summary>
 
 | Round | Check time | Total time | Wall time |
 | ----: | ---------: | ---------: | --------: |
-|     1 |    2.402 s |    2.601 s |   3.257 s |
-|     2 |    2.097 s |    2.285 s |   3.093 s |
-|     3 |    2.491 s |    2.704 s |   3.382 s |
-|     4 |    2.684 s |    2.922 s |   3.678 s |
-|     5 |    2.962 s |    3.213 s |   3.977 s |
-|     6 |    2.848 s |    3.054 s |   3.727 s |
-|     7 |    2.271 s |    2.540 s |   3.120 s |
-|     8 |    3.037 s |    3.304 s |   4.061 s |
-|     9 |    2.572 s |    2.821 s |   3.533 s |
-|    10 |    2.866 s |    3.050 s |   3.817 s |
-|    11 |    3.117 s |    3.328 s |   3.971 s |
-|    12 |    2.097 s |    2.294 s |   2.907 s |
-|    13 |    2.308 s |    2.489 s |   3.006 s |
-|    14 |    2.343 s |    2.520 s |   3.364 s |
-|    15 |    2.416 s |    2.672 s |   3.497 s |
-|    16 |    2.328 s |    2.521 s |   3.246 s |
-|    17 |    2.294 s |    2.497 s |   3.103 s |
-|    18 |    2.309 s |    2.559 s |   3.212 s |
-|    19 |    2.413 s |    2.647 s |   3.257 s |
-|    20 |    2.523 s |    2.730 s |   3.323 s |
-|    21 |    2.421 s |    2.590 s |   3.191 s |
-|    22 |    2.557 s |    2.815 s |   3.539 s |
-|    23 |    2.550 s |    2.805 s |   3.406 s |
-|    24 |    2.804 s |    3.054 s |   3.772 s |
-|    25 |    2.748 s |    3.003 s |   3.556 s |
-|    26 |    2.564 s |    2.769 s |   3.351 s |
-|    27 |    2.622 s |    2.893 s |   3.575 s |
-|    28 |    2.406 s |    2.615 s |   3.197 s |
-|    29 |    2.527 s |    2.725 s |   3.494 s |
-|    30 |    2.973 s |    3.248 s |   4.000 s |
+|     1 |    2.425 s |    2.677 s |   3.535 s |
+|     2 |    2.268 s |    2.453 s |   3.043 s |
+|     3 |    1.873 s |    2.055 s |   2.831 s |
+|     4 |    2.468 s |    2.635 s |   3.259 s |
+|     5 |    2.559 s |    2.793 s |   3.497 s |
+|     6 |    2.640 s |    2.882 s |   3.643 s |
+|     7 |    2.487 s |    2.691 s |   3.430 s |
+|     8 |    2.219 s |    2.413 s |   2.988 s |
+|     9 |    2.072 s |    2.328 s |   2.981 s |
+|    10 |    2.511 s |    2.733 s |   3.291 s |
+|    11 |    2.844 s |    3.114 s |   3.750 s |
+|    12 |    2.141 s |    2.328 s |   3.026 s |
+|    13 |    2.289 s |    2.527 s |   3.088 s |
+|    14 |    2.152 s |    2.409 s |   2.935 s |
+|    15 |    2.485 s |    2.711 s |   3.382 s |
+|    16 |    2.312 s |    2.537 s |   3.274 s |
+|    17 |    2.444 s |    2.621 s |   3.373 s |
+|    18 |    2.385 s |    2.642 s |   3.207 s |
+|    19 |    2.801 s |    3.046 s |   3.743 s |
+|    20 |    2.913 s |    3.168 s |   3.903 s |
+|    21 |    2.599 s |    2.829 s |   3.585 s |
+|    22 |    2.712 s |    2.898 s |   3.565 s |
+|    23 |    2.696 s |    2.967 s |   3.683 s |
+|    24 |    2.760 s |    3.019 s |   3.738 s |
+|    25 |    2.632 s |    2.872 s |   3.604 s |
+|    26 |    2.533 s |    2.819 s |   3.581 s |
+|    27 |    3.040 s |    3.275 s |   3.875 s |
+|    28 |    2.340 s |    2.552 s |   3.341 s |
+|    29 |    2.535 s |    2.771 s |   3.356 s |
+|    30 |    2.556 s |    2.748 s |   3.517 s |
 
 Median of each `--extendedDiagnostics` value:
 
 ```
 Files:                 1,108
 Lines:                29,817
-Identifiers:          82,089
-Symbols:             347,912
-Types:               227,281
-Instantiations:    1,086,257
-Memory used:        232,363K
-Memory allocs:     2,652,336
-Config time:          0.005s
-Parse time:           0.157s
+Identifiers:          81,089
+Symbols:             342,404
+Types:               223,766
+Instantiations:    1,043,234
+Memory used:        229,295K
+Memory allocs:     2,539,138
+Config time:          0.004s
+Parse time:           0.166s
 Bind time:            0.057s
-Check time:           2.525s
-Emit time:            0.004s
-Total time:           2.728s
+Check time:           2.499s
+Emit time:            0.005s
+Total time:           2.722s
 ```
 
 </details>
@@ -87,8 +87,8 @@ The whole `typecheck` group, measured in the same session:
 
 | Library                       | Version       |  Check time | Relative                    | Range (min – max) | Total time |   Types | Instantiations | Memory used |
 | :---------------------------- | :------------ | ----------: | :-------------------------- | ----------------: | ---------: | ------: | -------------: | ----------: |
-| [oRPC](../typecheck-orpc)     | 2.0.0-beta.50 | **2.393 s** | fastest                     | 1.839 s – 3.026 s |    2.726 s | 247,841 |      1,040,001 |     268 MiB |
-| [**tRPC**](../typecheck-trpc) | 11.28.0       | **2.525 s** | 1.06× slower (within noise) | 2.097 s – 3.117 s |    2.728 s | 227,281 |      1,086,257 |     227 MiB |
+| [oRPC](../typecheck-orpc)     | 2.0.0-beta.50 | **2.322 s** | fastest                     | 1.825 s – 3.011 s |    2.616 s | 247,841 |      1,040,001 |     268 MiB |
+| [**tRPC**](../typecheck-trpc) | 11.28.0       | **2.499 s** | 1.08× slower (within noise) | 1.873 s – 3.040 s |    2.722 s | 223,766 |      1,043,234 |     224 MiB |
 
 <sub>TypeScript 7.0.2, `tsc --singleThreaded` on CPU 3 · median of 30 rounds (order alternated).</sub>
 
@@ -96,7 +96,7 @@ Run on:
 
 ```
 CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 CPUs, no SMT, KVM VM)
-Memory: 16086 MB
+Memory: 16086 MiB
 OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
 Node: v26.13.0 (V8 14.6.202.34-node.40)
 pnpm: 12.18.0
