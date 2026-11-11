@@ -15,7 +15,7 @@ Benchmarks in the same group share one workload and are compared with each other
 
 ```bash
 pnpm install
-pnpm bench                  # every group, about 30 minutes
+pnpm bench                  # every group, about 40 minutes
 pnpm bench rpc ws           # selected groups
 pnpm bench rpc --rounds 3   # quicker, noisier
 pnpm bench:profile rpc-orpc # Clinic.js Doctor report for a benchmark or group
