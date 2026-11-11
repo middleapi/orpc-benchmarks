@@ -71,9 +71,9 @@ The whole `openapi` group, measured in the same session:
 
 Clinic.js Doctor profile from `pnpm bench:profile`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-hono/.clinic/report.clinic-doctor.html)); the profiler slows the server, so compare behaviour, not throughput:
 
-- CPU usage: 99% on average (max 103%)
-- Memory (RSS): 86 MiB – 103 MiB
-- Event loop delay: 0.09 ms on average (max 18.5 ms)
+- CPU usage: 99% on average (max 121%)
+- Memory (RSS): 66 MiB – 82 MiB
+- Event loop delay: 0.12 ms on average (max 15.8 ms)
 - Detected issues: event loop utilization (performance; expected: the load keeps the server saturated)
 
 Run on:
