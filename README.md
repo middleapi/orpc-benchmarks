@@ -72,8 +72,8 @@ Workload: `GET nested.procedure_1("hello world")` exactly as the official client
 
 | Library                       | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :---------------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **30,249** req/s | fastest      |   29,214 – 31,559 |     0.28 ms |     0.75 ms |          32.5 µs |   95 MiB |
-| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **8,213** req/s | 3.68× slower |     7,500 – 8,945 |     0.93 ms |     5.22 ms |         120.8 µs |  212 MiB |
+| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **25,797** req/s | fastest      |   22,255 – 30,746 |     0.34 ms |     0.90 ms |          38.2 µs |   87 MiB |
+| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **7,106** req/s | 3.63× slower |     5,880 – 8,772 |     1.13 ms |     4.68 ms |         139.5 µs |  197 MiB |
 
 <sub>2026-11-11 · Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
 
@@ -111,6 +111,14 @@ Workload: `tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client c
 <sub>2026-11-11 · TypeScript 7.0.2 · median of 10 rounds (run order alternated); `tsc` pinned to CPUs 1-3.</sub>
 
 Run on:
+
+```
+CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 CPUs, no SMT, KVM VM)
+Memory: 16086 MB
+OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
+Node: v26.13.0 (V8 14.6.202.34-node.40)
+pnpm: 12.18.0
+```
 
 ```
 CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 cores, KVM VM)

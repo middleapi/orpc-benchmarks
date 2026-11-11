@@ -22,28 +22,28 @@ tRPC 11.28.0 — 2026-11-11 (@trpc/server@11.28.0, @trpc/client@11.28.0)
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **8,213 req/s** (median; rounds range 7,500 – 8,945, CV 6.8%)          |
-| Latency       | p50 0.93 ms · p90 1.73 ms · p99 5.22 ms · p99.9 9.15 ms · mean 1.22 ms |
-| Server CPU    | 120.8 µs per request (99% of one core used)                            |
-| Server memory | 212 MiB peak RSS (196 MiB average while under load)                    |
+| Throughput    | **7,106 req/s** (median; rounds range 5,880 – 8,772, CV 15%)           |
+| Latency       | p50 1.13 ms · p90 2.10 ms · p99 4.68 ms · p99.9 6.45 ms · mean 1.41 ms |
+| Server CPU    | 139.5 µs per request (99% of one core used)                            |
+| Server memory | 197 MiB peak RSS (190 MiB average while under load)                    |
 
 <details>
 <summary>Per-round results, request and response</summary>
 
 Drift is the throughput change from the first to the second half of the measurement window; a clearly positive value means the server was still warming up.
 
-| Round | Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
-| ----: | ----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 8,945 |  +2.3% | 0.93 ms | 3.34 ms | 13.5 ms |        99% |  110.7 µs |  206 MiB |  1.0% |          14% |
-|     2 | 7,930 |  +6.3% | 0.93 ms | 6.98 ms | 20.6 ms |        99% |  125.3 µs |  218 MiB |  0.5% |          12% |
-|     3 | 7,862 | +16.0% | 0.94 ms | 6.83 ms | 23.1 ms |        99% |  126.4 µs |  223 MiB |  0.6% |          12% |
-|     4 | 8,495 |  -6.6% | 0.95 ms | 3.62 ms | 8.92 ms |        99% |  116.2 µs |  202 MiB |  1.3% |          14% |
-|     5 | 7,880 |  -1.4% | 0.94 ms | 7.17 ms | 22.6 ms |        99% |  125.9 µs |  214 MiB |  0.4% |          12% |
-|     6 | 8,932 |  +1.8% | 0.89 ms | 3.33 ms | 16.9 ms |        99% |  110.8 µs |  205 MiB |  0.9% |          13% |
-|     7 | 7,500 |  -2.0% | 1.00 ms | 7.38 ms | 24.0 ms |        99% |  132.5 µs |  222 MiB |  0.6% |          11% |
-|     8 | 7,782 |  +2.0% | 0.94 ms | 7.04 ms | 44.8 ms |        99% |  127.3 µs |  216 MiB |  0.9% |          12% |
-|     9 | 8,928 |  +4.1% | 0.92 ms | 3.47 ms | 21.4 ms |        99% |  110.8 µs |  210 MiB |  0.9% |          14% |
-|    10 | 8,791 |  +7.0% | 0.93 ms | 3.43 ms | 18.4 ms |        99% |  112.7 µs |  208 MiB |  0.9% |          13% |
+| Round | Req/s | Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
+| ----: | ----: | ----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
+|     1 | 6,523 | -8.2% | 1.29 ms | 4.78 ms | 9.52 ms |       100% |  152.8 µs |  196 MiB |  0.4% |          12% |
+|     2 | 6,077 | +8.9% | 1.21 ms | 10.0 ms | 26.7 ms |        99% |  163.4 µs |  214 MiB |  0.3% |          12% |
+|     3 | 6,279 | +1.1% | 1.13 ms | 9.37 ms | 32.4 ms |        99% |  158.1 µs |  214 MiB |  0.7% |          12% |
+|     4 | 7,539 | -0.8% | 1.12 ms | 4.40 ms | 7.90 ms |        99% |  132.0 µs |  199 MiB |  0.5% |          14% |
+|     5 | 7,247 | -6.1% | 1.17 ms | 4.59 ms | 8.66 ms |        99% |  137.1 µs |  196 MiB |  0.6% |          14% |
+|     6 | 6,965 | +7.8% | 1.14 ms | 4.89 ms | 13.9 ms |        99% |  141.9 µs |  195 MiB |  1.2% |          14% |
+|     7 | 8,523 | +0.4% | 0.93 ms | 3.57 ms | 10.8 ms |        99% |  116.3 µs |  187 MiB |  0.8% |          14% |
+|     8 | 8,772 | +0.5% | 0.91 ms | 3.57 ms | 9.44 ms |        98% |  112.0 µs |  192 MiB |  1.6% |          14% |
+|     9 | 8,363 | -4.4% | 0.93 ms | 3.63 ms | 8.86 ms |        99% |  118.8 µs |  197 MiB |  0.6% |          14% |
+|    10 | 5,880 | +7.4% | 1.31 ms | 9.69 ms | 24.3 ms |        99% |  168.0 µs |  211 MiB |  1.1% |          12% |
 
 Request sent by the load generator (plus a `Host` header):
 
@@ -56,7 +56,7 @@ Accept: */*
 Response:
 
 ```
-{"result":{"data":{"json":{"name":"nested/procedure_1","date":"2026-11-11T03:10:03.663Z","input":"hello world"},"meta":{"values":{"date":["Date"]},"v":1}}}}
+{"result":{"data":{"json":{"name":"nested/procedure_1","date":"2026-11-11T06:34:36.112Z","input":"hello world"},"meta":{"values":{"date":["Date"]},"v":1}}}}
 ```
 
 </details>
@@ -65,8 +65,8 @@ Compared with the rest of the `rpc` group, measured in the same session:
 
 | Library                 | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :---------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](../rpc-orpc)     | 2.0.0-beta.50 | **30,249** req/s | fastest      |   29,214 – 31,559 |     0.28 ms |     0.75 ms |          32.5 µs |   95 MiB |
-| [**tRPC**](../rpc-trpc) | 11.28.0       |  **8,213** req/s | 3.68× slower |     7,500 – 8,945 |     0.93 ms |     5.22 ms |         120.8 µs |  212 MiB |
+| [oRPC](../rpc-orpc)     | 2.0.0-beta.50 | **25,797** req/s | fastest      |   22,255 – 30,746 |     0.34 ms |     0.90 ms |          38.2 µs |   87 MiB |
+| [**tRPC**](../rpc-trpc) | 11.28.0       |  **7,106** req/s | 3.63× slower |     5,880 – 8,772 |     1.13 ms |     4.68 ms |         139.5 µs |  197 MiB |
 
 <sub>Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
 
@@ -80,7 +80,7 @@ Clinic.js Doctor profile under the same load, generated with `pnpm bench:profile
 Run on:
 
 ```
-CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 cores, KVM VM)
+CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 CPUs, no SMT, KVM VM)
 Memory: 16086 MB
 OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
 Node: v26.13.0 (V8 14.6.202.34-node.40)
