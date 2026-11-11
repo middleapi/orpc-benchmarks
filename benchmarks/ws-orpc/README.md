@@ -30,18 +30,20 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/client@2.0.
 <details>
 <summary>Per-round results, request and response</summary>
 
-| Round |  Req/s |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
-| ----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 30,742 | 0.28 ms | 0.81 ms | 14.1 ms |        98% |   32.0 µs |  121 MiB |  0.9% |          43% |
-|     2 | 30,536 | 0.27 ms | 0.84 ms | 24.0 ms |        98% |   32.1 µs |  124 MiB |  1.0% |          44% |
-|     3 | 30,620 | 0.27 ms | 0.83 ms | 10.2 ms |        98% |   32.1 µs |  119 MiB |  1.0% |          44% |
-|     4 | 31,064 | 0.27 ms | 0.81 ms | 21.5 ms |        98% |   31.5 µs |  123 MiB |  0.8% |          44% |
-|     5 | 28,716 | 0.28 ms | 1.11 ms | 41.8 ms |        97% |   33.8 µs |  123 MiB |  0.7% |          42% |
-|     6 | 31,771 | 0.27 ms | 0.75 ms | 9.55 ms |        99% |   31.0 µs |  122 MiB |  0.8% |          43% |
-|     7 | 31,771 | 0.27 ms | 0.77 ms | 9.79 ms |        99% |   31.2 µs |  121 MiB |  0.3% |          45% |
-|     8 | 31,402 | 0.27 ms | 0.74 ms | 36.8 ms |        98% |   31.3 µs |  123 MiB |  1.1% |          43% |
-|     9 | 30,366 | 0.27 ms | 0.84 ms | 17.2 ms |        98% |   32.1 µs |  124 MiB |  1.3% |          42% |
-|    10 | 30,013 | 0.28 ms | 0.86 ms | 15.6 ms |        98% |   32.6 µs |  118 MiB |  1.2% |          45% |
+Drift is the throughput change from the first to the second half of the measurement window; a clearly positive value means the server was still warming up.
+
+| Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
+| ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
+|     1 | 30,742 |  +1.3% | 0.28 ms | 0.81 ms | 14.1 ms |        98% |   32.0 µs |  121 MiB |  0.9% |          43% |
+|     2 | 30,536 |  +5.6% | 0.27 ms | 0.84 ms | 24.0 ms |        98% |   32.1 µs |  124 MiB |  1.0% |          44% |
+|     3 | 30,620 |  -5.6% | 0.27 ms | 0.83 ms | 10.2 ms |        98% |   32.1 µs |  119 MiB |  1.0% |          44% |
+|     4 | 31,064 |  -5.2% | 0.27 ms | 0.81 ms | 21.5 ms |        98% |   31.5 µs |  123 MiB |  0.8% |          44% |
+|     5 | 28,716 | +13.9% | 0.28 ms | 1.11 ms | 41.8 ms |        97% |   33.8 µs |  123 MiB |  0.7% |          42% |
+|     6 | 31,771 |  -5.9% | 0.27 ms | 0.75 ms | 9.55 ms |        99% |   31.0 µs |  122 MiB |  0.8% |          43% |
+|     7 | 31,771 |  -3.6% | 0.27 ms | 0.77 ms | 9.79 ms |        99% |   31.2 µs |  121 MiB |  0.3% |          45% |
+|     8 | 31,402 |  -4.5% | 0.27 ms | 0.74 ms | 36.8 ms |        98% |   31.3 µs |  123 MiB |  1.1% |          43% |
+|     9 | 30,366 |  -4.6% | 0.27 ms | 0.84 ms | 17.2 ms |        98% |   32.1 µs |  124 MiB |  1.3% |          42% |
+|    10 | 30,013 |  +3.2% | 0.28 ms | 0.86 ms | 15.6 ms |        98% |   32.6 µs |  118 MiB |  1.2% |          45% |
 
 Frame sent by the load generator (the id is incremented for every request on a connection):
 

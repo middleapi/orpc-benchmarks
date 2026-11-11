@@ -76,6 +76,8 @@ export interface ServerBenchmarkResult extends BenchmarkResultBase {
   sampleResponse: string;
   rounds: ServerRound[];
   summary: ServerSummary;
+  /** Problems the runner detected in these rounds (e.g. server not saturated, warm-up too short). */
+  warnings?: string[];
 }
 
 export interface TypecheckBenchmarkResult extends BenchmarkResultBase {
@@ -90,7 +92,12 @@ export interface Settings {
   connections: number;
   loadThreads: number;
   pinned: boolean;
-  cpus: { server: string; client: string; typecheck: string };
+  /** CPU lists; `idle` are SMT siblings of the server's CPUs, kept free. */
+  cpus: { server: string; client: string; typecheck: string; idle?: string };
+  /** Arguments every `tsc` round ran with (typecheck group). */
+  tscArgs?: string[];
+  /** Problems with the CPU layout (no pinning, server sharing a physical core). */
+  warnings?: string[];
 }
 
 export type GroupResult = {

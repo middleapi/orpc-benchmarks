@@ -21,6 +21,11 @@
     "*/*/playground",
     "*/*/scripts",
     "*/*/tests",
-    "*/*/*"
+    "*/*/*",
+
+    // The servers under test (not the generated typecheck-* projects, which have their own config).
+    "benchmarks/rpc-*/src",
+    "benchmarks/ws-*/src",
+    "benchmarks/openapi-*/src"
   ]
 }

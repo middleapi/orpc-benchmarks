@@ -1,7 +1,7 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import { Worker } from "node:worker_threads";
 import { type LatencySummary, mean, stdev, summarizeLatencies, sum } from "../stats.ts";
-import type { LoadTarget, WorkerReport } from "./types.ts";
+import { DRAIN_TIMEOUT_MS, type LoadTarget, type WorkerReport } from "./types.ts";
 
 export type { HttpRequestSpec, LoadTarget, WsMessageTemplate } from "./types.ts";
 
@@ -77,6 +77,7 @@ export async function runLoad(options: LoadOptions): Promise<LoadResult> {
   }
 
   let readyTimer: NodeJS.Timeout | undefined;
+  let reportTimer: NodeJS.Timeout | undefined;
   try {
     await Promise.race([
       Promise.all(ready),
@@ -100,11 +101,25 @@ export async function runLoad(options: LoadOptions): Promise<LoadResult> {
     for (const worker of workers) worker.postMessage("stop");
     options.onMeasureEnd?.();
 
-    const reports = await Promise.all(results);
-    const failure = reports.find((report) => report.invalid > 0 || report.errors > 0);
+    // A worker that does not report (e.g. stuck on a response it cannot parse) fails the run.
+    const reports = await Promise.race([
+      Promise.all(results),
+      new Promise<never>((_, reject) => {
+        reportTimer = setTimeout(
+          () => reject(new Error("A load generator thread did not report after the measurement")),
+          DRAIN_TIMEOUT_MS + 10_000,
+        );
+      }),
+    ]);
+    clearTimeout(reportTimer);
+
+    const failure = reports.find(
+      (report) => report.invalid > 0 || report.errors > 0 || report.unanswered > 0,
+    );
     if (failure) {
       throw new Error(
         `Load run is invalid (${sum(reports.map((r) => r.invalid))} invalid responses, ` +
+          `${sum(reports.map((r) => r.unanswered))} unanswered requests, ` +
           `${sum(reports.map((r) => r.errors))} connection errors): ${failure.firstFailure}`,
       );
     }
@@ -136,6 +151,7 @@ export async function runLoad(options: LoadOptions): Promise<LoadResult> {
     };
   } finally {
     clearTimeout(readyTimer);
+    clearTimeout(reportTimer);
     await Promise.all(workers.map((worker) => worker.terminate()));
   }
 }

@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
+import path from "node:path";
 
 /** Parses a Linux CPU list such as `0-3,6` into `[0, 1, 2, 3, 6]`. */
 export function parseCpuList(list: string): number[] {
@@ -71,29 +72,77 @@ export interface CpuLayout {
   client: number[];
   /** CPUs the type checker is pinned to. */
   typecheck: number[];
+  /** CPUs left unused: SMT siblings of the server's CPUs, which would share its core. */
+  idle: number[];
   pinned: boolean;
 }
 
 /**
- * Picks disjoint CPU sets for the server and the load generator so they never compete for
- * the same core. The first CPU is left to the OS (interrupts, housekeeping) whenever possible.
- *
- * - 4+ CPUs: server = last CPU, load generator = the two CPUs before it
- * - 3 CPUs:  server = last CPU, load generator = the middle CPU
- * - 2 CPUs:  server = second CPU, load generator = first CPU
+ * Groups `cpus` by physical core, using the SMT topology Linux exposes (one entry per core,
+ * listing its hardware threads). Without topology information every CPU is its own core.
  */
-export function defaultCpuLayout(cpus: readonly number[] = allowedCpus()): CpuLayout {
-  const n = cpus.length;
+export function physicalCores(cpus: readonly number[]): number[][] {
+  const cores = new Map<string, number[]>();
+  for (const cpu of cpus) {
+    const topology = `/sys/devices/system/cpu/cpu${cpu}/topology`;
+    const siblings =
+      tryRead(`${topology}/core_cpus_list`) ?? tryRead(`${topology}/thread_siblings_list`);
+    const key = siblings ? formatCpuList(parseCpuList(siblings)) : `${cpu}`;
+    cores.set(key, [...(cores.get(key) ?? []), cpu]);
+  }
+  return [...cores.values()].sort((a, b) => a[0]! - b[0]!);
+}
 
-  if (!canPinCpus || n < 2) {
-    return { server: [...cpus], client: [...cpus], typecheck: [...cpus], pinned: false };
+/**
+ * Picks disjoint CPU sets for the server and the load generator so they never compete for the
+ * same core, SMT siblings included: the server gets one hardware thread of the last physical core
+ * and that core's other threads stay idle. The load generator takes up to two CPUs on other cores,
+ * one per core first, leaving the first core to the OS (interrupts, housekeeping) whenever possible.
+ * Without SMT, on 4+ CPUs this is: server = last CPU, load generator = the two CPUs before it.
+ *
+ * `tsc` runs single-threaded on the server's CPU (no server runs during type-checking).
+ */
+export function defaultCpuLayout(
+  cpus: readonly number[] = allowedCpus(),
+  cores: number[][] = physicalCores(cpus),
+): CpuLayout {
+  if (!canPinCpus || cpus.length < 2) {
+    return { server: [...cpus], client: [...cpus], typecheck: [...cpus], idle: [], pinned: false };
   }
 
-  const server = [cpus[n - 1]!];
-  const client = n >= 4 ? [cpus[n - 3]!, cpus[n - 2]!] : [cpus[n - 2]!];
-  const typecheck = n >= 4 ? cpus.slice(1) : [...cpus];
+  if (cores.length < 2) {
+    // A single physical core: the server and the load generator cannot be kept apart.
+    const server = [cpus.at(-1)!];
+    return { server, client: [cpus.at(-2)!], typecheck: server, idle: [], pinned: true };
+  }
 
-  return { server, client, typecheck, pinned: true };
+  const serverCore = cores.at(-1)!;
+  const server = [serverCore.at(-1)!];
+  const idle = serverCore.filter((cpu) => cpu !== server[0]);
+
+  const others = cores.slice(0, -1);
+  // Keep the first core free for the OS when there is another one; if not, at least its first CPU.
+  const pool =
+    others.length > 1 ? others.slice(1) : others[0]!.length > 1 ? [others[0]!.slice(1)] : others;
+  const candidates: number[] = [];
+  const nearestFirst = [...pool].reverse();
+  for (let thread = 0; thread < Math.max(...pool.map((core) => core.length)); thread++) {
+    for (const core of nearestFirst) if (core[thread] !== undefined) candidates.push(core[thread]!);
+  }
+  const client = candidates.slice(0, 2).sort((a, b) => a - b);
+
+  return { server, client, typecheck: server, idle, pinned: true };
+}
+
+/** CPUs of `cpus` that share a physical core with one of `others`. */
+export function sharedCores(
+  cpus: readonly number[],
+  others: readonly number[],
+  cores: number[][] = physicalCores([...new Set([...cpus, ...others])]),
+): number[] {
+  return cpus.filter((cpu) =>
+    cores.some((core) => core.includes(cpu) && core.some((other) => others.includes(other))),
+  );
 }
 
 /** Prefixes a command with `taskset` so it (and every thread it spawns) runs on `cpus` only. */
@@ -104,6 +153,38 @@ export function pinned(
 ): [string, string[]] {
   if (!cpus || !canPinCpus) return [command, args];
   return ["taskset", ["-c", formatCpuList(cpus), command, ...args]];
+}
+
+/**
+ * Pins every thread of the current process to `cpus`; threads created later (worker threads,
+ * the libuv pool) inherit the mask. Done in place, so no second process can outlive this one.
+ */
+export function pinCurrentProcess(cpus: readonly number[]): void {
+  const expected = formatCpuList(cpus);
+  const threadsPinned = () =>
+    fs.readdirSync("/proc/self/task").every((task) => {
+      const status = tryRead(`/proc/self/task/${task}/status`); // undefined: the thread exited
+      const list = status && /^Cpus_allowed_list:\s*(.+)$/m.exec(status)?.[1];
+      return !list || formatCpuList(parseCpuList(list)) === expected;
+    });
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    execFileSync("taskset", ["-a", "-p", "-c", expected, String(process.pid)], { stdio: "ignore" });
+    if (threadsPinned()) return;
+  }
+  throw new Error(`Could not pin every thread of the runner to CPUs ${expected}`);
+}
+
+/**
+ * Path of an installed package's executable script. Running it with `process.execPath` works on
+ * every platform, unlike the shell shims in `node_modules/.bin` (which need a shell on Windows).
+ */
+export function packageBin(root: string, pkg: string, name = pkg): string {
+  const dir = path.join(root, "node_modules", pkg);
+  const manifest = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf8"));
+  const bin = typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.[name];
+  if (typeof bin !== "string") throw new Error(`${pkg} has no "${name}" executable`);
+  return path.join(dir, bin);
 }
 
 let clockTicksPerSecond: number | undefined;
@@ -198,7 +279,10 @@ function tryExec(command: string, args: string[]): string | undefined {
 
 export interface Environment {
   cpu: string;
+  /** Logical CPUs (hardware threads). */
   cores: number;
+  /** Hardware threads per physical core (2 or more with SMT / Hyper-Threading). */
+  threadsPerCore?: number;
   memory: string;
   os: string;
   virtualization?: string;
@@ -211,12 +295,14 @@ export function environment(): Environment {
   const cpus = os.cpus();
   const lscpu = tryExec("lscpu", []);
   const hypervisor = lscpu && /^Hypervisor vendor:\s*(.+)$/m.exec(lscpu)?.[1];
+  const threadsPerCore = lscpu && /^Thread\(s\) per core:\s*(\d+)$/m.exec(lscpu)?.[1];
   const pnpm = /\bpnpm\/(\S+)/.exec(process.env.npm_config_user_agent ?? "")?.[1];
   const distro = tryRead("/etc/os-release")?.match(/^PRETTY_NAME="?([^"\n]+)"?$/m)?.[1];
 
   return {
     cpu: cpus[0]?.model.trim() ?? "unknown",
     cores: cpus.length,
+    threadsPerCore: threadsPerCore ? Number(threadsPerCore) : undefined,
     memory: `${Math.round(os.totalmem() / 1024 / 1024)} MB`,
     os: `${distro ?? os.type()} (${os.type()} ${os.release()} ${os.arch()})`,
     virtualization: hypervisor ? `${hypervisor} VM` : undefined,

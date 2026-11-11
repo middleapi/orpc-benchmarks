@@ -28,6 +28,8 @@ interface GroupBase {
   title: string;
   /** One-line description of the workload, used in the README tables. */
   workload: string;
+  /** Rounds per benchmark (default 10). `--rounds` overrides it. */
+  rounds?: number;
   /** Warm-up before each measurement, in seconds (default 10). `--warmup` overrides it. */
   warmupSeconds?: number;
 }
@@ -67,8 +69,8 @@ export const groups: Group[] = [
     id: "ws",
     kind: "ws",
     title: "RPC over WebSocket",
-    // tRPC's WebSocket server keeps getting faster for well over 10 s after start-up (measured
-    // per-second throughput curves; the runner's drift check flagged it with a 10 s warm-up).
+    // With a 10 s warm-up, the runner's drift check still found tRPC's WebSocket server a few
+    // percent faster in the second half of the measurement window (+4.8% median); 30 s removes it.
     warmupSeconds: 30,
     workload:
       '`nested.procedure_1("hello world")` frames exactly as the official client sends them, one in flight per connection',
@@ -115,7 +117,11 @@ export const groups: Group[] = [
     id: "typecheck",
     kind: "typecheck",
     title: "Type-checking",
-    workload: "`tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client call for each",
+    // A round takes a few seconds, but its time varies more from run to run than the servers'
+    // throughput (about 10% vs 3%, CPU time included), so more rounds keep the median stable.
+    rounds: 30,
+    workload:
+      "`tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client call for each, every input declared with the same Standard Schema interface",
     benchmarks: [
       { name: "typecheck-orpc", library: "oRPC", packages: ["@orpc/server", "@orpc/client"] },
       { name: "typecheck-trpc", library: "tRPC", packages: ["@trpc/server", "@trpc/client"] },

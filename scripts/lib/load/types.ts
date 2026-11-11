@@ -1,3 +1,6 @@
+/** How long connections may take to finish their last request once the measurement ends. */
+export const DRAIN_TIMEOUT_MS = 2000;
+
 export interface HttpRequestSpec {
   method: string;
   /** Path including the query string. */
@@ -29,9 +32,12 @@ export interface WorkerReport {
   elapsedMs: number;
   /** Latency of every request completed during the measurement window, in microseconds. */
   latencies: Float64Array;
+  /** Completed requests in each second of the measurement window. */
   perSecond: number[];
   invalid: number;
   errors: number;
+  /** Requests that never got a response (each one stalls its connection for the rest of the run). */
+  unanswered: number;
   firstFailure?: string;
   /** CPU time of the worker thread divided by wall time (1 = one full core). */
   cpuUtilization: number;

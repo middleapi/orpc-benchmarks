@@ -29,7 +29,7 @@ import {
   type WsMessageTemplate,
   runLoad,
 } from "./lib/load/index.ts";
-import { resultsFile, writeReadmes } from "./lib/report.ts";
+import { consoleSummary, resultsFile, writeReadmes } from "./lib/report.ts";
 import type {
   GroupResult,
   ServerBenchmarkResult,
@@ -42,25 +42,29 @@ import type {
 import { mean, median, stdev } from "./lib/stats.ts";
 import {
   type CpuLayout,
+  allowedCpus,
   canPinCpus,
   cpuTimes,
   defaultCpuLayout,
   environment,
   formatCpuList,
+  packageBin,
   parseCpuList,
+  physicalCores,
+  pinCurrentProcess,
   pinned,
   processCpuSeconds,
   processMemory,
+  sharedCores,
 } from "./lib/system.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const BIN = path.join(ROOT, "node_modules", ".bin");
 
 const { values: options, positionals } = parseArgs({
   allowPositionals: true,
   allowNegative: true,
   options: {
-    rounds: { type: "string", default: "10" },
+    rounds: { type: "string" },
     warmup: { type: "string" },
     duration: { type: "string", default: "10" },
     connections: { type: "string", default: "10" },
@@ -82,14 +86,14 @@ if (options.help) {
 Groups: ${groups.map((g) => g.id).join(", ")} (default: all)
 
 Options:
-  --rounds <n>            rounds per benchmark, each with a fresh process (default 10)
+  --rounds <n>            rounds per benchmark, each with a fresh process (default 10, typecheck 30)
   --warmup <s>            warm-up seconds before each measurement (default 10, ws group 30)
   --duration <s>          measurement seconds per round (default 10)
   --connections <n>       concurrent connections, one request in flight each (default 10)
   --load-threads <n>      load generator threads (default 1)
   --server-cpus <list>    CPUs for the server under test, e.g. "3"
   --client-cpus <list>    CPUs for the runner and load generator, e.g. "1-2"
-  --typecheck-cpus <list> CPUs for tsc, e.g. "1-3"
+  --typecheck-cpus <list> CPUs for tsc, e.g. "3"
   --no-pin                do not pin processes to CPUs
   --no-save               do not write results/ and READMEs
   --profile               write a Clinic.js Doctor report for each selected server benchmark
@@ -110,7 +114,9 @@ const positiveInt = (name: string, value: string) => {
   return parsed;
 };
 
-const ROUNDS = options.profile ? 1 : positiveInt("rounds", options.rounds);
+const DEFAULT_ROUNDS = 10;
+const ROUNDS_OVERRIDE =
+  options.rounds === undefined ? undefined : positiveInt("rounds", options.rounds);
 const DEFAULT_WARMUP_SECONDS = 10;
 const WARMUP_OVERRIDE =
   options.warmup === undefined ? undefined : positiveInt("warmup", options.warmup);
@@ -119,48 +125,52 @@ const CONNECTIONS = positiveInt("connections", options.connections);
 const LOAD_THREADS = positiveInt("load-threads", options["load-threads"]);
 
 // ---------------------------------------------------------------------------------------------
-// CPU layout. The runner re-executes itself pinned to the load generator CPUs, so every thread it
-// creates (including the load generator workers) stays off the server's CPUs.
+// CPU layout. The runner pins itself to the load generator CPUs, so every thread it creates
+// (including the load generator workers) stays off the server's CPUs.
 // ---------------------------------------------------------------------------------------------
 
 function resolveLayout(): CpuLayout {
-  if (process.env.ORPC_BENCH_LAYOUT) return JSON.parse(process.env.ORPC_BENCH_LAYOUT) as CpuLayout;
-
   const layout = defaultCpuLayout();
   if (!options.pin) return { ...layout, pinned: false };
-  if (options["server-cpus"]) layout.server = parseCpuList(options["server-cpus"]);
-  if (options["client-cpus"]) layout.client = parseCpuList(options["client-cpus"]);
-  if (options["typecheck-cpus"]) layout.typecheck = parseCpuList(options["typecheck-cpus"]);
-
-  if (layout.pinned && layout.server.some((cpu) => layout.client.includes(cpu))) {
-    throw new Error("--server-cpus and --client-cpus must not overlap");
-  }
   if (!canPinCpus && (options["server-cpus"] || options["client-cpus"])) {
     throw new Error("CPU pinning needs Linux with `taskset` (util-linux) installed");
   }
+  if (!layout.pinned) return layout;
+
+  // tsc runs on the server's CPU unless told otherwise (no server runs while it does).
+  if (options["server-cpus"])
+    layout.server = layout.typecheck = parseCpuList(options["server-cpus"]);
+  if (options["client-cpus"]) layout.client = parseCpuList(options["client-cpus"]);
+  if (options["typecheck-cpus"]) layout.typecheck = parseCpuList(options["typecheck-cpus"]);
+  if (layout.server.some((cpu) => layout.client.includes(cpu))) {
+    throw new Error("--server-cpus and --client-cpus must not overlap");
+  }
+  // SMT siblings of the server that nothing else uses.
+  const used = new Set([...layout.server, ...layout.client]);
+  layout.idle = physicalCores(allowedCpus())
+    .filter((core) => core.some((cpu) => layout.server.includes(cpu)))
+    .flat()
+    .filter((cpu) => !used.has(cpu));
   return layout;
 }
 
 const layout = resolveLayout();
+const layoutWarnings: string[] = [];
 
-if (layout.pinned && !process.env.ORPC_BENCH_LAYOUT) {
-  const [command, args] = pinned(
-    process.execPath,
-    [...process.execArgv, ...process.argv.slice(1)],
-    layout.client,
-  );
-  const child = spawnSync(command, args, {
-    stdio: "inherit",
-    env: { ...process.env, ORPC_BENCH_LAYOUT: JSON.stringify(layout) },
-  });
-  process.exit(child.status ?? 1);
-}
-
-if (!layout.pinned) {
-  console.warn(
-    "⚠ CPU pinning is disabled or unavailable: the server and the load generator share CPUs, so results are noisier.",
+if (layout.pinned) {
+  pinCurrentProcess(layout.client);
+  const shared = sharedCores(layout.client, layout.server);
+  if (shared.length) {
+    layoutWarnings.push(
+      `the load generator CPU(s) ${formatCpuList(shared)} share a physical core (SMT) with the server — results are noisier and biased; use a machine with more cores or --server-cpus / --client-cpus on separate cores`,
+    );
+  }
+} else {
+  layoutWarnings.push(
+    "CPU pinning is disabled or unavailable: the server and the load generator share CPUs, so results are noisier",
   );
 }
+for (const warning of layoutWarnings) console.warn(`⚠ ${warning}`);
 
 // ---------------------------------------------------------------------------------------------
 // Helpers
@@ -168,14 +178,26 @@ if (!layout.pinned) {
 
 const log = (message: string) => console.log(message);
 
+/** Why a `spawnSync` call did not succeed: spawn error (e.g. ENOENT, ETIMEDOUT), signal or exit code. */
+function failureReason(result: ReturnType<typeof spawnSync>): string {
+  if (result.error) return result.error.message;
+  if (result.signal) return `killed by ${result.signal}`;
+  return `exit code ${result.status}`;
+}
+
 function run(command: string, args: string[], cwd: string): string {
   const result = spawnSync(command, args, { cwd, encoding: "utf8", env: process.env });
   if (result.status !== 0) {
     throw new Error(
-      `\`${command} ${args.join(" ")}\` failed in ${cwd}:\n${result.stdout}\n${result.stderr}`,
+      `\`${command} ${args.join(" ")}\` failed in ${cwd} (${failureReason(result)}):\n${result.stdout ?? ""}\n${result.stderr ?? ""}`,
     );
   }
   return result.stdout;
+}
+
+/** Command for an installed tool: its script, run by this Node.js binary (no shell shim needed). */
+function tool(pkg: string, name?: string): [string, string] {
+  return [process.execPath, packageBin(ROOT, pkg, name)];
 }
 
 function freePort(): Promise<number> {
@@ -212,6 +234,10 @@ function spread(values: number[]): Spread {
 function medianOf<T>(items: T[], pick: (item: T) => number | undefined): number | undefined {
   const values = items.map(pick).filter((value): value is number => value !== undefined);
   return values.length ? median(values) : undefined;
+}
+
+function roundsFor(group: Group): number {
+  return ROUNDS_OVERRIDE ?? group.rounds ?? DEFAULT_ROUNDS;
 }
 
 function warmupMs(group: Group): number {
@@ -358,6 +384,13 @@ function deriveTemplate(frames: string[]): WsMessageTemplate {
   return template;
 }
 
+/** The default headers, minus those the client sets itself (header names are case-insensitive). */
+function withDefaultHeaders(headers: Record<string, string> = {}): Record<string, string> {
+  const own = new Set(Object.keys(headers).map((name) => name.toLowerCase()));
+  const defaults = Object.entries(DEFAULT_HEADERS).filter(([name]) => !own.has(name.toLowerCase()));
+  return { ...Object.fromEntries(defaults), ...headers };
+}
+
 /** Determines the exact payload to replay, using the official client when the benchmark has one. */
 function capturePayload(
   group: Group,
@@ -368,18 +401,23 @@ function capturePayload(
   if (!benchmark.client) {
     if (!benchmark.request)
       throw new Error(`${benchmark.name} needs either a client script or a request`);
-    return { http: { ...benchmark.request, headers: { ...DEFAULT_HEADERS } } };
+    return { http: { ...benchmark.request, headers: withDefaultHeaders() } };
   }
 
+  const timeoutMs = 30_000;
   const result = spawnSync(process.execPath, [benchmark.client], {
     cwd,
     encoding: "utf8",
     env: { ...process.env, ORIGIN: `http://127.0.0.1:${port}` },
-    timeout: 30_000,
+    timeout: timeoutMs,
   });
   if (result.status !== 0) {
+    const reason =
+      (result.error as NodeJS.ErrnoException | undefined)?.code === "ETIMEDOUT"
+        ? `no result within ${timeoutMs / 1000} s`
+        : failureReason(result);
     throw new Error(
-      `Official client of ${benchmark.name} failed:\n${result.stdout}\n${result.stderr}`,
+      `Official client of ${benchmark.name} failed (${reason}):\n${result.stdout ?? ""}\n${result.stderr ?? ""}`,
     );
   }
   const report = JSON.parse(result.stdout.trim().split("\n").at(-1)!) as CaptureReport;
@@ -397,7 +435,7 @@ function capturePayload(
     http: {
       method: request.method,
       path: url.pathname + url.search,
-      headers: { ...DEFAULT_HEADERS, ...request.headers },
+      headers: withDefaultHeaders(request.headers),
       body: request.body,
     },
   };
@@ -450,13 +488,18 @@ interface PreparedServer {
 
 async function prepareServer(group: Group, benchmark: ServerBenchmark): Promise<PreparedServer> {
   const cwd = path.join(ROOT, "benchmarks", benchmark.name);
-  run(path.join(BIN, "tsdown"), ["src/main.ts"], cwd);
+  const [node, tsdown] = tool("tsdown");
+  run(node, [tsdown, "src/main.ts"], cwd);
 
   const server = await startServer(cwd, [process.execPath, "dist/main.mjs"]);
   try {
     const payload = capturePayload(group, benchmark, cwd, server.port);
     const sample = await sampleResponse(payload, server.port, benchmark.expect);
     return { benchmark, cwd, payload, sample, warmupMs: warmupMs(group) };
+  } catch (error) {
+    throw new Error(
+      `Preparing ${benchmark.name} failed: ${(error as Error).message}\nServer output:\n${server.output.join("")}`,
+    );
   } finally {
     await stopServer(server);
   }
@@ -610,7 +653,9 @@ function warnings(name: string, rounds: ServerRound[]): string[] {
 }
 
 async function runServerGroup(group: Group & { kind: "http" | "ws" }, selected: ServerBenchmark[]) {
-  log(`\n▶ ${group.id} — ${group.title} (${warmupMs(group) / 1000} s warm-up per round)`);
+  log(
+    `\n▶ ${group.id} — ${group.title} (${roundsFor(group)} rounds, ${warmupMs(group) / 1000} s warm-up + ${DURATION_MS / 1000} s measurement each)`,
+  );
   const prepared: PreparedServer[] = [];
   for (const benchmark of selected) {
     log(`  preparing ${benchmark.name}...`);
@@ -618,7 +663,7 @@ async function runServerGroup(group: Group & { kind: "http" | "ws" }, selected: 
   }
 
   const rounds = new Map(prepared.map((p) => [p.benchmark.name, [] as ServerRound[]]));
-  for (let round = 1; round <= ROUNDS; round++) {
+  for (let round = 1; round <= roundsFor(group); round++) {
     for (const item of roundOrder(prepared, round - 1)) {
       const result = await runServerRound(item, round);
       rounds.get(item.benchmark.name)!.push(result);
@@ -628,8 +673,7 @@ async function runServerGroup(group: Group & { kind: "http" | "ws" }, selected: 
 
   return prepared.map((p): ServerBenchmarkResult => {
     const benchmarkRounds = rounds.get(p.benchmark.name)!.sort((a, b) => a.round - b.round);
-    for (const warning of warnings(p.benchmark.name, benchmarkRounds))
-      console.warn(`  ⚠ ${warning}`);
+    const benchmarkWarnings = warnings(p.benchmark.name, benchmarkRounds); // printed with the summary
     return {
       name: p.benchmark.name,
       library: p.benchmark.library,
@@ -640,6 +684,7 @@ async function runServerGroup(group: Group & { kind: "http" | "ws" }, selected: 
       sampleResponse: p.sample,
       rounds: benchmarkRounds,
       summary: summarizeServer(benchmarkRounds),
+      warnings: benchmarkWarnings,
     };
   });
 }
@@ -650,6 +695,9 @@ async function runServerGroup(group: Group & { kind: "http" | "ws" }, selected: 
 // ---------------------------------------------------------------------------------------------
 
 async function profileServer(group: Group & { kind: "http" | "ws" }, benchmark: ServerBenchmark) {
+  if (process.platform === "win32") {
+    throw new Error("Profiling needs Linux or macOS: Clinic.js only writes its report on SIGINT");
+  }
   log(`\n▶ profiling ${benchmark.name} with Clinic.js Doctor`);
   const prepared = await prepareServer(group, benchmark);
   const dest = fs.mkdtempSync(path.join(os.tmpdir(), "orpc-bench-clinic-"));
@@ -657,7 +705,7 @@ async function profileServer(group: Group & { kind: "http" | "ws" }, benchmark: 
   const server = await startServer(
     prepared.cwd,
     [
-      path.join(BIN, "clinic"),
+      ...tool("clinic"),
       "doctor",
       "--dest",
       dest,
@@ -693,12 +741,18 @@ async function profileServer(group: Group & { kind: "http" | "ws" }, benchmark: 
   if (!fs.existsSync(generated))
     throw new Error(`Clinic did not write a report:\n${server.output.join("")}`);
 
+  if (!options.save) {
+    log(`  wrote ${generated} (--no-save: the committed report is unchanged)`);
+    return;
+  }
   // Only the HTML report is committed (see .gitignore); the raw samples stay in the temp dir.
   const report = path.join(prepared.cwd, ".clinic", "report.clinic-doctor.html");
   fs.mkdirSync(path.dirname(report), { recursive: true });
   fs.copyFileSync(generated, report);
   fs.rmSync(dest, { recursive: true, force: true });
   log(`  wrote ${path.relative(ROOT, report)}`);
+  // Its summary is embedded in the benchmark README.
+  writeReadmes(ROOT);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -716,10 +770,18 @@ function parseDiagnostics(output: string): Record<string, number> {
   return diagnostics;
 }
 
+/**
+ * TypeScript 7 runs 4 checkers in parallel by default (regardless of the CPU count), and each one
+ * rebuilds the shared router and client types, so the default's time and counts depend on that
+ * setting. Single-threaded, `tsc` does each library's type work exactly once, on one dedicated CPU.
+ */
+const TSC_ARGS = ["--noEmit", "--incremental", "false", "--singleThreaded"];
+
 function runTypecheckRound(cwd: string, round: number): TypecheckRound {
+  const [node, tsc] = tool("typescript", "tsc");
   const [command, args] = pinned(
-    path.join(BIN, "tsc"),
-    ["--noEmit", "--incremental", "false", "--extendedDiagnostics"],
+    node,
+    [tsc, ...TSC_ARGS, "--extendedDiagnostics"],
     layout.pinned ? layout.typecheck : undefined,
   );
   const started = performance.now();
@@ -740,16 +802,17 @@ function runTypecheckRound(cwd: string, round: number): TypecheckRound {
 }
 
 async function runTypecheckGroup(group: Group, selected: TypecheckBenchmark[]) {
-  log(`\n▶ ${group.id} — ${group.title}`);
+  log(`\n▶ ${group.id} — ${group.title} (${roundsFor(group)} rounds)`);
   const dirs = new Map(selected.map((b) => [b.name, path.join(ROOT, "benchmarks", b.name)]));
   for (const [name, cwd] of dirs) {
     log(`  generating ${name}...`);
     run(process.execPath, ["scripts/gen.ts"], cwd);
-    run(path.join(BIN, "tsc"), ["--noEmit", "--incremental", "false"], cwd); // warm the file cache
+    const [node, tsc] = tool("typescript", "tsc");
+    run(node, [tsc, ...TSC_ARGS], cwd); // warm the file cache
   }
 
   const rounds = new Map(selected.map((b) => [b.name, [] as TypecheckRound[]]));
-  for (let round = 1; round <= ROUNDS; round++) {
+  for (let round = 1; round <= roundsFor(group); round++) {
     for (const benchmark of roundOrder(selected, round - 1)) {
       const result = runTypecheckRound(dirs.get(benchmark.name)!, round);
       rounds.get(benchmark.name)!.push(result);
@@ -799,28 +862,30 @@ const cpus = {
   server: formatCpuList(layout.server),
   client: formatCpuList(layout.client),
   typecheck: formatCpuList(layout.typecheck),
+  ...(layout.idle.length ? { idle: formatCpuList(layout.idle) } : {}),
 };
 
 function settingsFor(group: Group): Settings {
   return {
-    rounds: ROUNDS,
+    rounds: roundsFor(group),
     warmupSeconds: warmupMs(group) / 1000,
     durationSeconds: DURATION_MS / 1000,
     connections: CONNECTIONS,
     loadThreads: LOAD_THREADS,
     pinned: layout.pinned,
     cpus,
+    ...(group.kind === "typecheck" ? { tscArgs: TSC_ARGS } : {}),
+    ...(layoutWarnings.length ? { warnings: layoutWarnings } : {}),
   };
 }
 
 log(
-  `CPU layout: ${layout.pinned ? `server ${cpus.server} · load generator ${cpus.client} · tsc ${cpus.typecheck}` : "not pinned"}`,
+  `CPU layout: ${layout.pinned ? `server ${cpus.server}${cpus.idle ? ` (SMT sibling ${cpus.idle} kept idle)` : ""} · load generator ${cpus.client} · tsc ${cpus.typecheck}` : "not pinned"}`,
 );
 log(
-  `Settings: ${ROUNDS} round(s) · ${WARMUP_OVERRIDE === undefined ? "per-group" : `${WARMUP_OVERRIDE} s`} warm-up + ${DURATION_MS / 1000} s measurement · ${CONNECTIONS} connections · ${LOAD_THREADS} load thread(s)`,
+  `Settings: ${ROUNDS_OVERRIDE ?? "per-group"} round(s) · ${WARMUP_OVERRIDE === undefined ? "per-group" : `${WARMUP_OVERRIDE} s`} warm-up + ${DURATION_MS / 1000} s measurement · ${CONNECTIONS} connections · ${LOAD_THREADS} load thread(s)`,
 );
 
-let saved = 0;
 for (const group of groups) {
   const groupSelected = positionals.length === 0 || positionals.includes(group.id);
   const selected = (group.benchmarks as (ServerBenchmark | TypecheckBenchmark)[]).filter(
@@ -839,6 +904,15 @@ for (const group of groups) {
       ? await runTypecheckGroup(group, selected as TypecheckBenchmark[])
       : await runServerGroup(group, selected as ServerBenchmark[]);
 
+  const result = {
+    group: { id: group.id, title: group.title, kind: group.kind, workload: group.workload },
+    date: new Date().toISOString(),
+    environment: environment(),
+    settings: settingsFor(group),
+    benchmarks,
+  } as GroupResult;
+  log(consoleSummary(result));
+
   const complete = selected.length === group.benchmarks.length;
   if (!options.save || !complete) {
     if (!complete)
@@ -848,23 +922,10 @@ for (const group of groups) {
     continue;
   }
 
-  const result = {
-    group: { id: group.id, title: group.title, kind: group.kind, workload: group.workload },
-    date: new Date().toISOString(),
-    environment: environment(),
-    settings: settingsFor(group),
-    benchmarks,
-  } as GroupResult;
-
   const file = resultsFile(ROOT, group.id);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(result, null, 2)}\n`);
-  saved++;
-  log(`  saved ${path.relative(ROOT, file)}`);
-}
-
-// Profiling refreshes the Clinic.js summaries embedded in the benchmark READMEs.
-if (saved > 0 || (options.profile && options.save)) {
+  // Right away, so the READMEs never disagree with results/*.json, even if a later group fails.
   writeReadmes(ROOT);
-  log("\nREADMEs updated.");
+  log(`  saved ${path.relative(ROOT, file)} and updated the READMEs`);
 }

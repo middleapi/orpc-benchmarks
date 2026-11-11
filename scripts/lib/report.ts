@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { groups } from "./config.ts";
+import { packageBin } from "./system.ts";
 import type {
   GroupResult,
   ServerBenchmarkResult,
@@ -15,6 +16,9 @@ const seconds = (value: number) => `${value.toFixed(3)} s`;
 const mib = (bytes: number) => `${Math.round(bytes / 1024 / 1024)} MiB`;
 const pct = (fraction: number) => `${(fraction * 100).toFixed(fraction < 0.1 ? 1 : 0)}%`;
 const us = (value: number) => `${value.toFixed(1)} µs`;
+const signedPct = (fraction: number) =>
+  `${fraction >= 0 ? "+" : ""}${(fraction * 100).toFixed(1)}%`;
+const cpuLabel = (list: string) => (/[,-]/.test(list) ? `CPUs ${list}` : `CPU ${list}`);
 
 function version(result: { versions: Record<string, string> }): string {
   return Object.values(result.versions)[0] ?? "?";
@@ -124,15 +128,18 @@ function groupTable(result: GroupResult, highlight?: string): string {
 
 function describeRun(result: GroupResult): string {
   const s = result.settings;
+  const idle = s.cpus.idle ? ` (SMT sibling ${s.cpus.idle} kept idle)` : "";
   const pinning = s.pinned
     ? result.group.kind === "typecheck"
-      ? `\`tsc\` pinned to CPUs ${s.cpus.typecheck}`
-      : `server pinned to CPU ${s.cpus.server}, load generator to CPUs ${s.cpus.client}`
+      ? `\`tsc\` pinned to ${cpuLabel(s.cpus.typecheck)}${s.cpus.typecheck === s.cpus.server ? idle : ""}`
+      : `server pinned to ${cpuLabel(s.cpus.server)}${idle}, load generator to ${cpuLabel(s.cpus.client)}`
     : "no CPU pinning";
 
   if (result.group.kind === "typecheck") {
     const typescript = result.benchmarks[0]?.versions.typescript;
-    return `TypeScript ${typescript ?? "?"} · median of ${s.rounds} rounds (run order alternated); ${pinning}.`;
+    const flags = s.tscArgs?.filter((arg) => arg === "--singleThreaded" || arg === "--checkers");
+    const mode = flags?.length ? `, \`tsc ${flags.join(" ")}\`` : "";
+    return `TypeScript ${typescript ?? "?"}${mode} · median of ${s.rounds} rounds (run order alternated); ${pinning}.`;
   }
 
   return (
@@ -141,15 +148,66 @@ function describeRun(result: GroupResult): string {
   );
 }
 
+/** Everything the runner flagged for this group (CPU layout, saturation, warm-up, noise). */
+function groupWarnings(result: GroupResult, only?: string): string[] {
+  const benchmarks = result.benchmarks as (ServerBenchmarkResult | TypecheckBenchmarkResult)[];
+  return [
+    ...(result.settings.warnings ?? []),
+    ...benchmarks
+      .filter((b) => only === undefined || b.name === only)
+      .flatMap((b) => ("warnings" in b ? (b.warnings ?? []) : [])),
+  ];
+}
+
+function warningLines(warnings: string[]): string[] {
+  return warnings.length ? ["", ...warnings.map((warning) => `> ⚠ ${warning}`)] : [];
+}
+
 function describeEnvironment(result: GroupResult): string {
   const e = result.environment;
+  const smt =
+    e.threadsPerCore === undefined
+      ? ""
+      : e.threadsPerCore === 1
+        ? ", no SMT"
+        : `, ${e.threadsPerCore} threads per core`;
   return [
-    `CPU: ${e.cpu} (${e.cores} cores${e.virtualization ? `, ${e.virtualization}` : ""})`,
+    `CPU: ${e.cpu} (${e.cores} ${e.threadsPerCore === undefined ? "cores" : "CPUs"}${smt}${e.virtualization ? `, ${e.virtualization}` : ""})`,
     `Memory: ${e.memory}`,
     `OS: ${e.os}`,
     `Node: ${e.node} (V8 ${e.v8})`,
     ...(e.pnpm ? [`pnpm: ${e.pnpm}`] : []),
   ].join("\n");
+}
+
+/** Plain-text summary of a group run for the console: medians, ranges and the comparison. */
+export function consoleSummary(result: GroupResult): string {
+  const { rounds } = result.settings;
+  const lines = [`  Summary (median of ${rounds} round${rounds === 1 ? "" : "s"}):`];
+  const pad = Math.max(...result.benchmarks.map((b) => b.name.length));
+
+  if (result.group.kind === "typecheck") {
+    const benchmarks = result.benchmarks as TypecheckBenchmarkResult[];
+    const best = bestOf(benchmarks, (b) => -b.summary.checkTime.median);
+    for (const b of benchmarks) {
+      const s = b.summary;
+      lines.push(
+        `    ${b.name.padEnd(pad)}  check ${seconds(s.checkTime.median)} (${seconds(s.checkTime.min)} – ${seconds(s.checkTime.max)}) · total ${seconds(s.totalTime.median)} · ${int(s.diagnostics.Types ?? Number.NaN)} types · ${int(s.diagnostics.Instantiations ?? Number.NaN)} instantiations · ${mib(s.diagnostics["Memory used"] ?? Number.NaN)} · ${relative(s.checkTime, best.summary.checkTime, false)}`,
+      );
+    }
+  } else {
+    const benchmarks = result.benchmarks as ServerBenchmarkResult[];
+    const best = bestOf(benchmarks, (b) => b.summary.throughput.median);
+    for (const b of benchmarks) {
+      const s = b.summary;
+      lines.push(
+        `    ${b.name.padEnd(pad)}  ${int(s.throughput.median)} req/s (${int(s.throughput.min)} – ${int(s.throughput.max)}, CV ${pct(s.throughput.cv)}) · p50 ${ms(s.latency.p50)} · p99 ${ms(s.latency.p99)} · ${s.cpuPerRequest === undefined ? "n/a" : us(s.cpuPerRequest)} CPU/req · ${s.peakRss === undefined ? "n/a" : mib(s.peakRss)} peak RSS · ${relative(s.throughput, best.summary.throughput, true)}`,
+      );
+    }
+  }
+
+  lines.push(...groupWarnings(result).map((warning) => `  ⚠ ${warning}`));
+  return lines.join("\n");
 }
 
 function rootSection(results: GroupResult[]): string {
@@ -162,6 +220,7 @@ function rootSection(results: GroupResult[]): string {
       groupTable(result),
       "",
       `<sub>${result.date.slice(0, 10)} · ${describeRun(result)}</sub>`,
+      ...warningLines(groupWarnings(result)),
     ].join("\n"),
   );
 
@@ -209,6 +268,7 @@ function serverDetails(benchmark: ServerBenchmarkResult): string {
     [
       "Round",
       "Req/s",
+      "Drift",
       "p50",
       "p99",
       "Max",
@@ -218,10 +278,11 @@ function serverDetails(benchmark: ServerBenchmarkResult): string {
       "Steal",
       "Load gen CPU",
     ],
-    ["r", "r", "r", "r", "r", "r", "r", "r", "r", "r"],
+    ["r", "r", "r", "r", "r", "r", "r", "r", "r", "r", "r"],
     benchmark.rounds.map((r) => [
       `${r.round}`,
       int(r.throughput),
+      r.drift === undefined ? "n/a" : signedPct(r.drift),
       ms(r.latency.p50),
       ms(r.latency.p99),
       ms(r.latency.max),
@@ -257,6 +318,8 @@ function serverDetails(benchmark: ServerBenchmarkResult): string {
     "",
     "<details>",
     "<summary>Per-round results, request and response</summary>",
+    "",
+    "Drift is the throughput change from the first to the second half of the measurement window; a clearly positive value means the server was still warming up.",
     "",
     rounds,
     "",
@@ -414,6 +477,7 @@ function benchmarkSection(root: string, result: GroupResult, name: string): stri
     groupTable(result, name),
     "",
     `<sub>${describeRun(result)}</sub>`,
+    ...warningLines(groupWarnings(result, name)),
     ...(clinic ? ["", clinic] : []),
     "",
     "Run on:",
@@ -462,8 +526,8 @@ export function writeReadmes(root: string): void {
   }
 
   // Keep generated files in the repository's formatting (aligned tables), so `pnpm fmt:check` passes.
-  const oxfmt = path.join(root, "node_modules", ".bin", "oxfmt");
-  if (fs.existsSync(oxfmt)) {
-    execFileSync(oxfmt, [...written, ...resultFiles], { cwd: root, stdio: "ignore" });
-  }
+  execFileSync(process.execPath, [packageBin(root, "oxfmt"), ...written, ...resultFiles], {
+    cwd: root,
+    stdio: "ignore",
+  });
 }
