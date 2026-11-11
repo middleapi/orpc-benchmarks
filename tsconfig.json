@@ -1,6 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    // Scripts run directly with Node.js type stripping.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
   "include": [
     "playground",
     "scripts",

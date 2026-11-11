@@ -1,0 +1,568 @@
+{
+  "group": {
+    "id": "typecheck",
+    "title": "Type-checking",
+    "kind": "typecheck",
+    "workload": "`tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client call for each"
+  },
+  "date": "2026-11-11T03:31:31.496Z",
+  "environment": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cores": 4,
+    "memory": "16086 MB",
+    "os": "Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)",
+    "virtualization": "KVM VM",
+    "node": "v26.13.0",
+    "v8": "14.6.202.34-node.40",
+    "pnpm": "12.18.0"
+  },
+  "settings": {
+    "rounds": 10,
+    "warmupSeconds": 10,
+    "durationSeconds": 10,
+    "connections": 10,
+    "loadThreads": 1,
+    "pinned": true,
+    "cpus": {
+      "server": "3",
+      "client": "1-2",
+      "typecheck": "1-3"
+    }
+  },
+  "benchmarks": [
+    {
+      "name": "typecheck-orpc",
+      "library": "oRPC",
+      "versions": {
+        "@orpc/server": "2.0.0-beta.50",
+        "@orpc/client": "2.0.0-beta.50",
+        "typescript": "7.0.2"
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "checkTime": 1.917,
+          "totalTime": 2.108,
+          "wallTime": 2.6322932080000174,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481167360,
+            "Memory allocs": 5088266,
+            "Config time": 0.004,
+            "Parse time": 0.142,
+            "Bind time": 0.042,
+            "Check time": 1.917,
+            "Emit time": 0.002,
+            "Total time": 2.108
+          }
+        },
+        {
+          "round": 2,
+          "checkTime": 1.887,
+          "totalTime": 2.059,
+          "wallTime": 2.546709208999993,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481037312,
+            "Memory allocs": 5088243,
+            "Config time": 0.003,
+            "Parse time": 0.126,
+            "Bind time": 0.038,
+            "Check time": 1.887,
+            "Emit time": 0.002,
+            "Total time": 2.059
+          }
+        },
+        {
+          "round": 3,
+          "checkTime": 1.812,
+          "totalTime": 1.986,
+          "wallTime": 2.5319294859999792,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481327104,
+            "Memory allocs": 5088009,
+            "Config time": 0.005,
+            "Parse time": 0.113,
+            "Bind time": 0.051,
+            "Check time": 1.812,
+            "Emit time": 0.002,
+            "Total time": 1.986
+          }
+        },
+        {
+          "round": 4,
+          "checkTime": 1.893,
+          "totalTime": 2.038,
+          "wallTime": 2.522471510000061,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481385472,
+            "Memory allocs": 5088431,
+            "Config time": 0.003,
+            "Parse time": 0.102,
+            "Bind time": 0.035,
+            "Check time": 1.893,
+            "Emit time": 0.002,
+            "Total time": 2.038
+          }
+        },
+        {
+          "round": 5,
+          "checkTime": 1.92,
+          "totalTime": 2.112,
+          "wallTime": 2.6744673689999616,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481238016,
+            "Memory allocs": 5088418,
+            "Config time": 0.003,
+            "Parse time": 0.114,
+            "Bind time": 0.07,
+            "Check time": 1.92,
+            "Emit time": 0.003,
+            "Total time": 2.112
+          }
+        },
+        {
+          "round": 6,
+          "checkTime": 1.809,
+          "totalTime": 1.979,
+          "wallTime": 2.502158531999914,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481243136,
+            "Memory allocs": 5088373,
+            "Config time": 0.005,
+            "Parse time": 0.127,
+            "Bind time": 0.034,
+            "Check time": 1.809,
+            "Emit time": 0.002,
+            "Total time": 1.979
+          }
+        },
+        {
+          "round": 7,
+          "checkTime": 2.059,
+          "totalTime": 2.228,
+          "wallTime": 2.7636480089998803,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481233920,
+            "Memory allocs": 5088194,
+            "Config time": 0.003,
+            "Parse time": 0.122,
+            "Bind time": 0.04,
+            "Check time": 2.059,
+            "Emit time": 0.002,
+            "Total time": 2.228
+          }
+        },
+        {
+          "round": 8,
+          "checkTime": 1.663,
+          "totalTime": 1.823,
+          "wallTime": 2.491072089999914,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481228800,
+            "Memory allocs": 5088374,
+            "Config time": 0.005,
+            "Parse time": 0.113,
+            "Bind time": 0.032,
+            "Check time": 1.663,
+            "Emit time": 0.008,
+            "Total time": 1.823
+          }
+        },
+        {
+          "round": 9,
+          "checkTime": 1.949,
+          "totalTime": 2.161,
+          "wallTime": 2.6847265280000867,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481316864,
+            "Memory allocs": 5088045,
+            "Config time": 0.005,
+            "Parse time": 0.156,
+            "Bind time": 0.047,
+            "Check time": 1.949,
+            "Emit time": 0.002,
+            "Total time": 2.161
+          }
+        },
+        {
+          "round": 10,
+          "checkTime": 2.088,
+          "totalTime": 2.316,
+          "wallTime": 2.7942683169997764,
+          "diagnostics": {
+            "Files": 1419,
+            "Lines": 46996,
+            "Identifiers": 87381,
+            "Symbols": 765400,
+            "Types": 451042,
+            "Instantiations": 2198304,
+            "Memory used": 481204224,
+            "Memory allocs": 5087938,
+            "Config time": 0.005,
+            "Parse time": 0.142,
+            "Bind time": 0.077,
+            "Check time": 2.088,
+            "Emit time": 0.002,
+            "Total time": 2.316
+          }
+        }
+      ],
+      "summary": {
+        "checkTime": {
+          "median": 1.905,
+          "min": 1.663,
+          "max": 2.088,
+          "cv": 0.06473876699767311
+        },
+        "totalTime": {
+          "median": 2.0835,
+          "min": 1.823,
+          "max": 2.316,
+          "cv": 0.06667196984868626
+        },
+        "wallTime": {
+          "median": 2.589501208500005,
+          "min": 2.491072089999914,
+          "max": 2.7942683169997764,
+          "cv": 0.042506335843142125
+        },
+        "diagnostics": {
+          "Files": 1419,
+          "Lines": 46996,
+          "Identifiers": 87381,
+          "Symbols": 765400,
+          "Types": 451042,
+          "Instantiations": 2198304,
+          "Memory used": 481235968,
+          "Memory allocs": 5088254.5,
+          "Config time": 0.0045000000000000005,
+          "Parse time": 0.124,
+          "Bind time": 0.041,
+          "Check time": 1.905,
+          "Emit time": 0.002,
+          "Total time": 2.0835
+        }
+      }
+    },
+    {
+      "name": "typecheck-trpc",
+      "library": "tRPC",
+      "versions": {
+        "@trpc/server": "11.28.0",
+        "@trpc/client": "11.28.0",
+        "typescript": "7.0.2"
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "checkTime": 2.789,
+          "totalTime": 2.968,
+          "wallTime": 3.6934248949999455,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683592704,
+            "Memory allocs": 7412164,
+            "Config time": 0.003,
+            "Parse time": 0.117,
+            "Bind time": 0.05,
+            "Check time": 2.789,
+            "Emit time": 0.002,
+            "Total time": 2.968
+          }
+        },
+        {
+          "round": 2,
+          "checkTime": 2.756,
+          "totalTime": 2.918,
+          "wallTime": 3.855620018000016,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683613184,
+            "Memory allocs": 7412239,
+            "Config time": 0.004,
+            "Parse time": 0.112,
+            "Bind time": 0.037,
+            "Check time": 2.756,
+            "Emit time": 0.007,
+            "Total time": 2.918
+          }
+        },
+        {
+          "round": 3,
+          "checkTime": 2.868,
+          "totalTime": 3.08,
+          "wallTime": 3.800233041000087,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683659264,
+            "Memory allocs": 7412289,
+            "Config time": 0.004,
+            "Parse time": 0.124,
+            "Bind time": 0.078,
+            "Check time": 2.868,
+            "Emit time": 0.002,
+            "Total time": 3.08
+          }
+        },
+        {
+          "round": 4,
+          "checkTime": 2.945,
+          "totalTime": 3.129,
+          "wallTime": 3.7692273099999873,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683599872,
+            "Memory allocs": 7412078,
+            "Config time": 0.003,
+            "Parse time": 0.107,
+            "Bind time": 0.067,
+            "Check time": 2.945,
+            "Emit time": 0.002,
+            "Total time": 3.129
+          }
+        },
+        {
+          "round": 5,
+          "checkTime": 3.033,
+          "totalTime": 3.206,
+          "wallTime": 4.119010606999975,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683693056,
+            "Memory allocs": 7412476,
+            "Config time": 0.004,
+            "Parse time": 0.123,
+            "Bind time": 0.04,
+            "Check time": 3.033,
+            "Emit time": 0.005,
+            "Total time": 3.206
+          }
+        },
+        {
+          "round": 6,
+          "checkTime": 3.08,
+          "totalTime": 3.244,
+          "wallTime": 4.059406497000018,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683837440,
+            "Memory allocs": 7412426,
+            "Config time": 0.005,
+            "Parse time": 0.094,
+            "Bind time": 0.06,
+            "Check time": 3.08,
+            "Emit time": 0.002,
+            "Total time": 3.244
+          }
+        },
+        {
+          "round": 7,
+          "checkTime": 3.194,
+          "totalTime": 3.339,
+          "wallTime": 4.154050801999867,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683701248,
+            "Memory allocs": 7412053,
+            "Config time": 0.003,
+            "Parse time": 0.097,
+            "Bind time": 0.036,
+            "Check time": 3.194,
+            "Emit time": 0.007,
+            "Total time": 3.339
+          }
+        },
+        {
+          "round": 8,
+          "checkTime": 2.768,
+          "totalTime": 2.946,
+          "wallTime": 3.6116917429999447,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683656192,
+            "Memory allocs": 7412028,
+            "Config time": 0.005,
+            "Parse time": 0.101,
+            "Bind time": 0.067,
+            "Check time": 2.768,
+            "Emit time": 0.002,
+            "Total time": 2.946
+          }
+        },
+        {
+          "round": 9,
+          "checkTime": 2.894,
+          "totalTime": 3.062,
+          "wallTime": 3.8392239929998757,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683289600,
+            "Memory allocs": 7411885,
+            "Config time": 0.004,
+            "Parse time": 0.108,
+            "Bind time": 0.039,
+            "Check time": 2.894,
+            "Emit time": 0.015,
+            "Total time": 3.062
+          }
+        },
+        {
+          "round": 10,
+          "checkTime": 2.755,
+          "totalTime": 2.93,
+          "wallTime": 3.6824480419999452,
+          "diagnostics": {
+            "Files": 1107,
+            "Lines": 29840,
+            "Identifiers": 82131,
+            "Symbols": 993405,
+            "Types": 760156,
+            "Instantiations": 2827804,
+            "Memory used": 683656192,
+            "Memory allocs": 7412311,
+            "Config time": 0.003,
+            "Parse time": 0.106,
+            "Bind time": 0.062,
+            "Check time": 2.755,
+            "Emit time": 0.002,
+            "Total time": 2.93
+          }
+        }
+      ],
+      "summary": {
+        "checkTime": {
+          "median": 2.8810000000000002,
+          "min": 2.755,
+          "max": 3.194,
+          "cv": 0.05258021243882768
+        },
+        "totalTime": {
+          "median": 3.0709999999999997,
+          "min": 2.918,
+          "max": 3.339,
+          "cv": 0.047360070439841
+        },
+        "wallTime": {
+          "median": 3.819728516999981,
+          "min": 3.6116917429999447,
+          "max": 4.154050801999867,
+          "cv": 0.04936254578716735
+        },
+        "diagnostics": {
+          "Files": 1107,
+          "Lines": 29840,
+          "Identifiers": 82131,
+          "Symbols": 993405,
+          "Types": 760156,
+          "Instantiations": 2827804,
+          "Memory used": 683656192,
+          "Memory allocs": 7412201.5,
+          "Config time": 0.004,
+          "Parse time": 0.1075,
+          "Bind time": 0.055,
+          "Check time": 2.8810000000000002,
+          "Emit time": 0.002,
+          "Total time": 3.0709999999999997
+        }
+      }
+    }
+  ]
+}

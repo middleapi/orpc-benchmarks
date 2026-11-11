@@ -47,10 +47,12 @@ const routerNames = Array.from({ length: NUM_ROUTERS }, (_, i) => `router_${i}`)
 await fs.mkdir(ROUTER_DIR, { recursive: true });
 await fs.mkdir(CONSUME_DIR, { recursive: true });
 
-routerNames.forEach(async (routerName) => {
-  await fs.writeFile(path.join(ROUTER_DIR, `${routerName}.ts`), createRouter(routerName));
-  await fs.writeFile(path.join(CONSUME_DIR, `${routerName}.ts`), createConsume(routerName));
-});
+await Promise.all(
+  routerNames.flatMap((routerName) => [
+    fs.writeFile(path.join(ROUTER_DIR, `${routerName}.ts`), createRouter(routerName)),
+    fs.writeFile(path.join(CONSUME_DIR, `${routerName}.ts`), createConsume(routerName)),
+  ]),
+);
 
 const routerIndex = `
 import { router as routerFn } from '../trpc'

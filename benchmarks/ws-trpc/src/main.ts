@@ -40,7 +40,9 @@ export const router = t.router({
   }),
 });
 
-const wss = new WebSocketServer({ host: "127.0.0.1", port: 3000 });
+const port = Number(process.env.PORT ?? 3000);
+
+const wss = new WebSocketServer({ host: "127.0.0.1", port });
 
 applyWSSHandler({
   wss,
@@ -52,5 +54,5 @@ applyWSSHandler({
 
 wss.on("listening", () => {
   // eslint-disable-next-line no-console
-  console.log("Listening on ws://127.0.0.1:3000");
+  console.log(`Listening on ws://127.0.0.1:${port}`);
 });

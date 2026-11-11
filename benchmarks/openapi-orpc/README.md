@@ -1,57 +1,88 @@
 # oRPC OpenAPI Runtime Benchmark
 
-- Evaluates the performance of oRPC's OpenAPI runtime on a project with **6 procedures** and **3 routers**; every procedure is exposed as a RESTful `GET` endpoint that reads its input from query parameters.
+- Evaluates the performance of oRPC's OpenAPI runtime on a project with **6 procedures** and **3 routers**; every procedure is exposed as a RESTful `GET` endpoint that reads its input from query parameters, served by `OpenAPIHandler` from `@orpc/openapi/node` on a plain `node:http` server.
 - Uses [Standard Schema](https://github.com/standard-schema/standard-schema) instead of a specific library like Zod so the results reflect oRPC's performance without external influences.
+- Load: `GET /nested/procedure_1?who=hello%20world`, the same request as the Hono benchmark; both return the same JSON body.
 - Comparable to the other benchmarks in the `openapi` group: [openapi-orpc](../openapi-orpc), [openapi-hono](../openapi-hono).
-- Every run profiles the server with [Clinic.js Doctor](https://clinicjs.org/doctor/) and overwrites the committed report at [.clinic/report.clinic-doctor.html](./.clinic/report.clinic-doctor.html).
 
 ## How to run
 
 ```bash
-pnpm bench
+pnpm bench          # this benchmark only; the numbers are printed, not saved
+pnpm bench:profile  # Clinic.js Doctor report at .clinic/report.clinic-doctor.html
 ```
+
+The committed results come from running the whole `openapi` group in one session from the repository root (`pnpm bench openapi`), so every library in the group is measured under the same conditions. See the [methodology](../../README.md#methodology).
 
 ## Latest Result
 
-oRPC 2.0.0-beta.37 - 2026-09-19
+<!-- result:start -->
 
-```bash
-Running 20s test @ http://127.0.0.1:3000/nested/procedure_1?who=hello%20world
-10 connections
+oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/openapi@2.0.0-beta.50)
 
+| Metric        | Result                                                                 |
+| :------------ | :--------------------------------------------------------------------- |
+| Throughput    | **28,311 req/s** (median; rounds range 20,948 – 32,252, CV 11%)        |
+| Latency       | p50 0.30 ms · p90 0.53 ms · p99 0.83 ms · p99.9 1.33 ms · mean 0.35 ms |
+| Server CPU    | 34.8 µs per request (99% of one core used)                             |
+| Server memory | 95 MiB peak RSS (94 MiB average while under load)                      |
 
-┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
-│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
-├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
-│ Latency │ 0 ms │ 0 ms │ 0 ms  │ 1 ms │ 0.02 ms │ 0.18 ms │ 25 ms │
-└─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
-┌───────────┬────────┬────────┬────────┬────────┬───────────┬──────────┬────────┐
-│ Stat      │ 1%     │ 2.5%   │ 50%    │ 97.5%  │ Avg       │ Stdev    │ Min    │
-├───────────┼────────┼────────┼────────┼────────┼───────────┼──────────┼────────┤
-│ Req/Sec   │ 12,911 │ 12,911 │ 20,175 │ 20,559 │ 19,799.41 │ 1,594.94 │ 12,909 │
-├───────────┼────────┼────────┼────────┼────────┼───────────┼──────────┼────────┤
-│ Bytes/Sec │ 3.2 MB │ 3.2 MB │ 5 MB   │ 5.1 MB │ 4.91 MB   │ 395 kB   │ 3.2 MB │
-└───────────┴────────┴────────┴────────┴────────┴───────────┴──────────┴────────┘
+<details>
+<summary>Per-round results, request and response</summary>
 
-Req/Bytes counts sampled once per second.
-# of samples: 20
+| Round |  Req/s |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
+| ----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
+|     1 | 30,172 | 0.28 ms | 0.75 ms | 7.59 ms |        99% |   32.8 µs |   95 MiB |  0.6% |          40% |
+|     2 | 28,817 | 0.30 ms | 0.79 ms | 26.4 ms |        99% |   34.2 µs |   96 MiB |  1.0% |          36% |
+|     3 | 27,971 | 0.31 ms | 0.83 ms | 4.72 ms |        99% |   35.4 µs |   94 MiB |  0.8% |          39% |
+|     4 | 32,252 | 0.27 ms | 0.67 ms | 3.80 ms |        99% |   30.6 µs |   96 MiB |  0.8% |          38% |
+|     5 | 30,034 | 0.29 ms | 0.74 ms | 8.92 ms |        99% |   33.0 µs |   92 MiB |  0.5% |          37% |
+|     6 | 20,948 | 0.44 ms | 1.29 ms | 28.6 ms |        98% |   46.8 µs |   97 MiB |  1.1% |          39% |
+|     7 | 28,652 | 0.29 ms | 0.85 ms | 24.8 ms |        98% |   34.2 µs |   94 MiB |  1.5% |          40% |
+|     8 | 27,754 | 0.31 ms | 0.84 ms | 18.2 ms |        98% |   35.4 µs |   94 MiB |  1.1% |          37% |
+|     9 | 27,446 | 0.30 ms | 0.88 ms | 4.72 ms |        99% |   36.1 µs |   96 MiB |  0.5% |          39% |
+|    10 | 26,811 | 0.34 ms | 0.84 ms | 4.73 ms |        99% |   36.8 µs |   94 MiB |  1.1% |          38% |
 
-396k requests in 20.01s, 98.2 MB read
+Request sent by the load generator (plus a `Host` header):
+
+```http
+GET /nested/procedure_1?who=hello%20world HTTP/1.1
+User-Agent: orpc-benchmarks
+Accept: */*
 ```
 
-Clinic Doctor summary ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-orpc/.clinic/report.clinic-doctor.html)):
+Response:
 
-- CPU usage: ~104% on average (max 487%)
-- Memory (RSS): 72 MB - 90 MB
-- Event loop delay: 0.04 ms on average (max 2.52 ms)
-- Detected issues: none
+```
+{"name":"nested/procedure_1","date":"2026-11-11T03:23:33.865Z","input":{"who":"hello world"}}
+```
+
+</details>
+
+Compared with the rest of the `openapi` group, measured in the same session:
+
+| Library                     | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
+| :-------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
+| [**oRPC**](../openapi-orpc) | 2.0.0-beta.50 | **28,311** req/s | fastest                     |   20,948 – 32,252 |     0.30 ms |     0.83 ms |          34.8 µs |   95 MiB |
+| [Hono](../openapi-hono)     | 4.13.17       | **27,192** req/s | 1.04× slower (within noise) |   25,688 – 29,560 |     0.31 ms |     0.87 ms |          36.2 µs |  100 MiB |
+
+<sub>Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
+
+Clinic.js Doctor profile under the same load, generated with `pnpm bench:profile` ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/openapi-orpc/.clinic/report.clinic-doctor.html)). The profiler slows the server down, so use it to compare behaviour, not throughput:
+
+- CPU usage: 99% on average (max 103%)
+- Memory (RSS): 80 MiB – 98 MiB
+- Event loop delay: 0.06 ms on average (max 7.70 ms)
+- Detected issues: event loop utilization (performance) — high event loop utilization is expected here, since the load keeps the server saturated
 
 Run on:
 
-```bash
-CPU: Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz (8 cores)
-Memory: 7238 MB
-OS: Linux 7.0.0-29-generic x64
-Node: 24.18.1
-pnpm: 11.17.0
 ```
+CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 cores, KVM VM)
+Memory: 16086 MB
+OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
+Node: v26.13.0 (V8 14.6.202.34-node.40)
+pnpm: 12.18.0
+```
+
+<!-- result:end -->
