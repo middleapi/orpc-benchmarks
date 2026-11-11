@@ -86,6 +86,17 @@ Workload: `nested.procedure_1("hello world")` frames exactly as the official cli
 
 <sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 30 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
+### `openapi` — OpenAPI (REST) over HTTP
+
+Workload: `GET /nested/procedure_1?who=hello%20world`; the JSON response carries a `Date`.
+
+| Library                           | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
+| :-------------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
+| [oRPC](./benchmarks/openapi-orpc) | 2.0.0-beta.50 | **23,998 req/s** | fastest                     |   22,038 – 27,021 |     0.39 ms |     0.90 ms |          41.3 µs |   87 MiB |
+| [Hono](./benchmarks/openapi-hono) | 4.13.17       | **22,661 req/s** | 1.06× slower (within noise) |   20,597 – 24,489 |     0.41 ms |     0.96 ms |          43.7 µs |   92 MiB |
+
+<sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
+
 Run on:
 
 ```
