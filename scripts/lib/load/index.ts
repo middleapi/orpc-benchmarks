@@ -3,7 +3,7 @@ import { Worker } from "node:worker_threads";
 import { type LatencySummary, sum, summarizeLatencies } from "../stats.ts";
 import { DRAIN_TIMEOUT_MS, type LoadTarget, type WorkerMessage } from "./types.ts";
 
-export { frame, type HttpRequestSpec, type LoadTarget, type WsMessageTemplate } from "./types.ts";
+export { frame, type LoadTarget, type WsMessageTemplate } from "./types.ts";
 
 export interface LoadOptions {
   target: LoadTarget;
@@ -20,12 +20,10 @@ export interface LoadOptions {
 
 export interface LoadResult {
   requests: number;
-  /** Requests per second during the measurement window. */
   throughput: number;
   latency: LatencySummary;
   /** Requests completed in each second of the window. */
   perSecond: number[];
-  /** CPU used by the busiest load generator thread (1 = one core). */
   clientCpu: number;
   /** First valid response body. */
   sample: string;
@@ -35,7 +33,7 @@ type Report = Extract<WorkerMessage, { type: "result" }>;
 
 const WORKER_URL = new URL("./worker.ts", import.meta.url);
 
-/** Runs the closed-loop load; rejects as soon as any response is invalid or a request is lost. */
+/** Runs the closed-loop load; rejects on an invalid response, a connection error or an unanswered request. */
 export async function runLoad(options: LoadOptions): Promise<LoadResult> {
   const threads = Math.max(1, Math.min(options.threads, options.connections));
   const workers = Array.from(

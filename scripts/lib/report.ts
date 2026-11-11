@@ -16,14 +16,14 @@ import { mean } from "./stats.ts";
 import { packageBin, run } from "./system.ts";
 
 export const int = (value: number) => Math.round(value).toLocaleString("en-US");
-export const ms = (value: number) => `${value.toFixed(value < 10 ? 2 : 1)} ms`;
-export const seconds = (value: number) => `${value.toFixed(3)} s`;
-export const mib = (bytes: number) => `${Math.round(bytes / 1024 / 1024)} MiB`;
+const ms = (value: number) => `${value.toFixed(value < 10 ? 2 : 1)} ms`;
+const seconds = (value: number) => `${value.toFixed(3)} s`;
+const mib = (bytes: number) => `${Math.round(bytes / 1024 / 1024)} MiB`;
 export const pct = (fraction: number) => `${(fraction * 100).toFixed(fraction < 0.1 ? 1 : 0)}%`;
 export const signedPct = (fraction: number) =>
   `${fraction >= 0 ? "+" : ""}${(fraction * 100).toFixed(1)}%`;
 const us = (value: number) => `${value.toFixed(1)} µs`;
-export const rounds = (count: number) => `${count} round${count === 1 ? "" : "s"}`;
+export const roundCount = (count: number) => `${count} round${count === 1 ? "" : "s"}`;
 const orNa = <T>(value: T | undefined, format: (value: T) => string) =>
   value === undefined ? "n/a" : format(value);
 const cpuLabel = (list: string) => (/[,-]/.test(list) ? `CPUs ${list}` : `CPU ${list}`);
@@ -44,9 +44,6 @@ function bestOf<T>(items: T[], score: (item: T) => number): T {
 
 interface Comparison {
   header: string[];
-  align: string;
-  /** Index of the cell shown in bold. */
-  headline: number;
   rows: { name: string; library: string; cells: string[] }[];
 }
 
@@ -65,8 +62,6 @@ function comparison(result: GroupResult): Comparison {
         "Instantiations",
         "Memory used",
       ],
-      align: "lrlrrrrr",
-      headline: 1,
       rows: result.benchmarks.map(({ name, library, versions, summary: s }) => ({
         name,
         library,
@@ -96,8 +91,6 @@ function comparison(result: GroupResult): Comparison {
       "Server CPU / req",
       "Peak RSS",
     ],
-    align: "lrlrrrrr",
-    headline: 1,
     rows: result.benchmarks.map(({ name, library, versions, summary: s }) => ({
       name,
       library,
@@ -122,13 +115,13 @@ function table(header: string[], align: string, rows: string[][]): string {
 
 /** `highlight`: the benchmark whose README the table is in (its name in bold, relative links). */
 function groupTable(result: GroupResult, highlight?: string): string {
-  const { header, align, headline, rows } = comparison(result);
+  const { header, rows } = comparison(result);
   return table(
     ["Library", ...header],
-    `l${align}`,
+    "llrlrrrrr",
     rows.map(({ name, library, cells }) => [
       `[${name === highlight ? `**${library}**` : library}](${highlight ? `../${name}` : `./benchmarks/${name}`})`,
-      ...cells.map((cell, i) => (i === headline ? `**${cell}**` : cell)),
+      ...cells.map((cell, i) => (i === 1 ? `**${cell}**` : cell)), // the headline metric
     ]),
   );
 }
@@ -141,7 +134,7 @@ export function consoleSummary(result: GroupResult): string {
   const { header, rows } = comparison(result);
   const width = Math.max(...rows.map((row) => row.name.length));
   return [
-    `  Summary (median of ${rounds(result.settings.rounds)}):`,
+    `  Summary (median of ${roundCount(result.settings.rounds)}):`,
     ...rows.map(
       (row) => `    ${row.name.padEnd(width)}  ${labelled(header.slice(1), row.cells.slice(1))}`,
     ),
@@ -189,7 +182,7 @@ export const formatTypecheckRound = (name: string, r: TypecheckRound) =>
 
 function describeRun(result: GroupResult): string {
   const { cpus } = result.settings;
-  const median = `median of ${rounds(result.settings.rounds)} (order alternated)`;
+  const median = `median of ${roundCount(result.settings.rounds)} (order alternated)`;
   const server =
     cpus && `${cpuLabel(cpus.server)}${cpus.idle ? ` (SMT sibling ${cpus.idle} idle)` : ""}`;
 
@@ -202,7 +195,7 @@ function describeRun(result: GroupResult): string {
   const pinning = s.cpus
     ? `server on ${server}, load generator on ${cpuLabel(s.cpus.client)}`
     : "no CPU pinning";
-  return `Median of ${rounds(s.rounds)} (fresh server each, order alternated) · ${s.connections} connections · ${s.warmupSeconds} s warm-up + ${s.durationSeconds} s measured · ${pinning}.`;
+  return `Median of ${roundCount(s.rounds)} (fresh server each, order alternated) · ${s.connections} connections · ${s.warmupSeconds} s warm-up + ${s.durationSeconds} s measured · ${pinning}.`;
 }
 
 function describeEnvironment(result: GroupResult): string {
@@ -398,12 +391,13 @@ function clinicSection(root: string, name: string): string | undefined {
     typeof value === "string"
       ? value === "none"
         ? []
-        : [`${CLINIC_LABELS[key] ?? key} (${value})`]
+        : [
+            `${CLINIC_LABELS[key] ?? key} (${value}${key === "loopUtilization" ? "; expected: the load keeps the server saturated" : ""})`,
+          ]
       : Object.entries(value)
           .filter(([, v]) => v !== "none")
           .map(([k, v]) => `memory ${k} (${v})`),
   );
-  const saturated = data.analysis.issues.loopUtilization !== "none";
   const link = `benchmarks/${name}/.clinic/report.clinic-doctor.html`;
 
   return [
@@ -412,15 +406,12 @@ function clinicSection(root: string, name: string): string | undefined {
     `- CPU usage: ${pct(mean(cpu))} on average (max ${pct(Math.max(...cpu))})`,
     `- Memory (RSS): ${mib(Math.min(...rss))} – ${mib(Math.max(...rss))}`,
     `- Event loop delay: ${ms(mean(delay))} on average (max ${ms(Math.max(...delay))})`,
-    `- Detected issues: ${issues.length ? issues.join(", ") : "none"}${saturated ? " (expected: the load keeps the server saturated)" : ""}`,
+    `- Detected issues: ${issues.length ? issues.join(", ") : "none"}`,
   ].join("\n");
 }
 
-const find = <T extends BenchmarkResult>(benchmarks: T[], name: string) =>
-  benchmarks.find((b) => b.name === name)!;
-
-function benchmarkSection(root: string, result: GroupResult, name: string): string {
-  const benchmark = find<BenchmarkResult>(result.benchmarks, name);
+function benchmarkSection(root: string, result: GroupResult, benchmark: BenchmarkResult): string {
+  const { name } = benchmark;
   const versions = Object.entries(benchmark.versions).map(([pkg, v]) => `${pkg}@${v}`);
   const clinic = isTypecheck(result) ? undefined : clinicSection(root, name);
 
@@ -428,8 +419,8 @@ function benchmarkSection(root: string, result: GroupResult, name: string): stri
     `${benchmark.library} ${Object.values(benchmark.versions)[0]} — ${result.date.slice(0, 10)} (${versions.join(", ")})`,
     "",
     isTypecheck(result)
-      ? typecheckDetails(find(result.benchmarks, name))
-      : serverDetails(find(result.benchmarks, name)),
+      ? typecheckDetails(benchmark as TypecheckBenchmarkResult)
+      : serverDetails(benchmark as ServerBenchmarkResult),
     "",
     `The whole \`${result.group.id}\` group, measured in the same session:`,
     "",
@@ -474,7 +465,7 @@ export function writeReadmes(root: string): void {
   for (const result of results) {
     for (const benchmark of result.benchmarks) {
       const readme = path.join(root, "benchmarks", benchmark.name, "README.md");
-      replaceBetween(readme, "result", benchmarkSection(root, result, benchmark.name));
+      replaceBetween(readme, "result", benchmarkSection(root, result, benchmark));
       written.push(readme);
     }
   }

@@ -40,7 +40,7 @@ export interface ServerSummary {
   peakRss?: number;
   avgRss?: number;
   /** Maximum across rounds. */
-  steal?: number;
+  steal: number;
   /** Maximum across rounds. */
   clientCpu: number;
 }
@@ -124,7 +124,7 @@ export type GroupResult = {
     }
 );
 
-export type TypecheckGroupResult = Extract<GroupResult, { settings: TypecheckSettings }>;
+type TypecheckGroupResult = Extract<GroupResult, { settings: TypecheckSettings }>;
 
 export const isTypecheck = (result: GroupResult): result is TypecheckGroupResult =>
   result.group.kind === "typecheck";

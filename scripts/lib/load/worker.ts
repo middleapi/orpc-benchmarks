@@ -20,8 +20,9 @@ const text = (data: Buffer) => data.toString("utf8", 0, 300);
 let running = true;
 let recording = false;
 let measureStart = 0;
+let open = 0;
 let inFlight = 0;
-let drained: (() => void) | undefined;
+let allClosed: (() => void) | undefined;
 let failed = false;
 let sample: string | undefined;
 const latencies: number[] = [];
@@ -44,6 +45,17 @@ class ClosedLoop {
     this.transport = transport;
   }
 
+  opened(): void {
+    open++;
+    this.next();
+  }
+
+  closed(what: string): void {
+    open--;
+    if (running) fail(`${what} closed by the server`);
+    else if (open === 0) allClosed?.();
+  }
+
   next(): void {
     if (!running) return this.transport.close();
     this.waiting = true;
@@ -52,15 +64,13 @@ class ClosedLoop {
     this.transport.send();
   }
 
-  /** Handles a complete response; `problem` is set when its framing or status is wrong. */
-  answered(body: Buffer, problem?: string): void {
+  answered(body: Buffer): void {
     if (!this.waiting) return fail(`response with no request in flight: ${text(body)}`);
-    this.waiting = false;
-    inFlight--;
-    if (problem) return fail(problem);
     if (!markers.every((marker) => body.includes(marker))) {
       return fail(`unexpected response: ${text(body)}`);
     }
+    this.waiting = false;
+    inFlight--;
 
     sample ??= body.toString("utf8");
     if (recording) {
@@ -69,7 +79,6 @@ class ClosedLoop {
       const second = Math.floor((now - measureStart) / 1000);
       perSecond[second] = (perSecond[second] ?? 0) + 1;
     }
-    if (!running && inFlight === 0) drained?.();
     this.next();
   }
 }
@@ -81,15 +90,15 @@ class ClosedLoop {
 const CRLF = Buffer.from("\r\n");
 const HEADER_END = Buffer.from("\r\n\r\n");
 
-type ParsedResponse = { status: number; body: Buffer; end: number } | { malformed: string };
+type ParsedResponse = { status: string; body: Buffer; end: number } | { malformed: string };
 
 /** Parses the HTTP response at the start of `buffer`; `undefined` while it is incomplete. */
 function parseResponse(buffer: Buffer): ParsedResponse | undefined {
   const headerEnd = buffer.indexOf(HEADER_END);
   if (headerEnd === -1) return undefined;
 
-  const status = (buffer[9]! - 48) * 100 + (buffer[10]! - 48) * 10 + (buffer[11]! - 48);
   const head = buffer.toString("latin1", 0, headerEnd);
+  const status = head.slice(9, 12);
   const bodyStart = headerEnd + 4;
 
   const contentLength = /\r\ncontent-length:[ \t]*(\d+)/i.exec(head);
@@ -111,19 +120,15 @@ function parseResponse(buffer: Buffer): ParsedResponse | undefined {
       if (!hex)
         return { malformed: `invalid chunk size line ${JSON.stringify(line.slice(0, 40))}` };
       const size = Number.parseInt(hex, 16);
-      const dataStart = lineEnd + 2;
 
       if (size === 0) {
-        // Last chunk, then optional trailers and an empty line.
-        if (buffer.length < dataStart + 2) return undefined;
+        // The empty line after the last chunk and any trailers.
+        const end = buffer.indexOf(HEADER_END, lineEnd);
         const body = chunks.length === 1 ? chunks[0]! : Buffer.concat(chunks);
-        if (buffer[dataStart] === 13 && buffer[dataStart + 1] === 10) {
-          return { status, body, end: dataStart + 2 };
-        }
-        const trailersEnd = buffer.indexOf(HEADER_END, dataStart);
-        return trailersEnd === -1 ? undefined : { status, body, end: trailersEnd + 4 };
+        return end === -1 ? undefined : { status, body, end: end + 4 };
       }
 
+      const dataStart = lineEnd + 2;
       const dataEnd = dataStart + size;
       if (buffer.length < dataEnd + 2) return undefined;
       if (buffer[dataEnd] !== 13 || buffer[dataEnd + 1] !== 10) {
@@ -149,7 +154,7 @@ function httpConnection(request: Buffer): void {
   const loop = new ClosedLoop({ send: () => socket.write(request), close: () => socket.end() });
   let pending: Buffer | undefined;
 
-  socket.on("connect", () => loop.next());
+  socket.on("connect", () => loop.opened());
   socket.on("data", (chunk: Buffer) => {
     const buffer = pending ? Buffer.concat([pending, chunk]) : chunk;
     const response = parseResponse(buffer);
@@ -157,25 +162,19 @@ function httpConnection(request: Buffer): void {
     if (!response) return;
 
     if ("malformed" in response) {
-      loop.answered(
-        buffer,
-        `malformed response (${response.malformed}): ${buffer.toString("latin1", 0, 300)}`,
-      );
+      fail(`malformed response (${response.malformed}): ${buffer.toString("latin1", 0, 300)}`);
     } else if (response.end !== buffer.length) {
-      loop.answered(response.body, "received more bytes than one response");
+      fail("received more bytes than one response");
+    } else if (response.status !== "200") {
+      fail(`HTTP ${response.status}: ${text(response.body)}`);
     } else {
-      loop.answered(
-        response.body,
-        response.status === 200 ? undefined : `HTTP ${response.status}: ${text(response.body)}`,
-      );
+      loop.answered(response.body);
     }
   });
   socket.on("error", (error) => {
     if (running) fail(`socket error: ${error.message}`);
   });
-  socket.on("close", () => {
-    if (running) fail("connection closed by the server");
-  });
+  socket.on("close", () => loop.closed("connection"));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -190,16 +189,14 @@ function wsConnection(message: WsMessageTemplate): void {
     close: () => ws.close(),
   });
 
-  ws.on("open", () => loop.next());
+  ws.on("open", () => loop.opened());
   ws.on("message", (data: Buffer, isBinary: boolean) =>
-    loop.answered(data, isBinary ? `binary message: ${text(data)}` : undefined),
+    isBinary ? fail(`binary message: ${text(data)}`) : loop.answered(data),
   );
   ws.on("error", (error) => {
     if (running) fail(`websocket error: ${error.message}`);
   });
-  ws.on("close", () => {
-    if (running) fail("websocket closed by the server");
-  });
+  ws.on("close", () => loop.closed("websocket"));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -212,8 +209,9 @@ let cpuStart = 0;
 
 parentPort!.on("message", async (message: "measure" | "stop") => {
   if (message === "measure") {
-    latencies.length = 0;
-    perSecond.length = 0;
+    if (open < config.connections) {
+      return fail(`${config.connections - open} connection(s) did not open during the warm-up`);
+    }
     cpuStart = threadCpu();
     measureStart = performance.now();
     recording = true;
@@ -225,13 +223,12 @@ parentPort!.on("message", async (message: "measure" | "stop") => {
   const cpu = threadCpu() - cpuStart;
   running = false;
 
-  // A request still unanswered stalled its connection, silently lowering the concurrency.
-  if (inFlight > 0) {
-    await Promise.race([
-      new Promise<void>((resolve) => (drained = resolve)),
-      sleep(DRAIN_TIMEOUT_MS),
-    ]);
-  }
+  // Each connection closes after its last response, so waiting for that still catches an extra
+  // response; a request never answered keeps its connection open.
+  await Promise.race([
+    new Promise<void>((resolve) => (allClosed = resolve)),
+    sleep(DRAIN_TIMEOUT_MS),
+  ]);
   if (inFlight > 0) return fail(`${inFlight} request(s) never got a response`);
 
   post({

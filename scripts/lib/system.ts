@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -13,9 +13,7 @@ function tryRead(file: string): string | undefined {
 
 function tryExec(command: string, args: string[]): string | undefined {
   try {
-    return execFileSync(command, args, { stdio: ["ignore", "pipe", "ignore"] })
-      .toString()
-      .trim();
+    return run(command, args).trim();
   } catch {
     return undefined;
   }
@@ -60,12 +58,11 @@ export function packageBin(root: string, pkg: string, name = pkg): [string, stri
 export function parseCpuList(list: string): number[] {
   const cpus = new Set<number>();
   for (const part of list.split(",")) {
-    if (!part.trim()) continue;
-    const [from, to = from] = part.split("-").map((value) => Number.parseInt(value, 10));
-    if (from === undefined || Number.isNaN(from) || Number.isNaN(to)) {
-      throw new Error(`Invalid CPU list: ${list}`);
+    const [, from, to = from] = /^\s*(\d+)(?:-(\d+))?\s*$/.exec(part) ?? [];
+    if (from === undefined || Number(from) > Number(to)) {
+      throw new Error(`Invalid CPU list: "${list}"`);
     }
-    for (let cpu = from; cpu <= to!; cpu++) cpus.add(cpu);
+    for (let cpu = Number(from); cpu <= Number(to); cpu++) cpus.add(cpu);
   }
   return [...cpus].sort((a, b) => a - b);
 }
@@ -103,7 +100,7 @@ function physicalCores(cpus: readonly number[]): number[][] {
   return [...cores.values()];
 }
 
-export interface CpuLayout {
+interface CpuLayout {
   /** The server under test, and `tsc`. */
   server: number[];
   /** The runner and its load generator threads. */
@@ -116,12 +113,12 @@ export interface CpuLayout {
 
 /**
  * Default: the server gets one thread of the last physical core, the load generator up to two
- * CPUs on other cores (one per core first), sparing the first core for the OS.
+ * CPUs on other cores (one per core first), sparing the first CPU for the OS when another is free.
  */
-export function pickCpus(
+function pickCpus(
   cpus: readonly number[],
   cores: number[][],
-  overrides: { server?: number[]; client?: number[] } = {},
+  overrides: { server?: number[]; client?: number[] },
 ): CpuLayout {
   const server = overrides.server ?? [cores.at(-1)!.at(-1)!];
   const others = cores.filter((core) => !core.some((cpu) => server.includes(cpu)));
@@ -142,6 +139,7 @@ export function pickCpus(
   if (server.some((cpu) => client.includes(cpu))) {
     throw new Error("The server and load generator CPUs must not overlap");
   }
+  if (!client.length) throw new Error("No CPU left for the load generator: pass --client-cpus");
 
   const serverCores = cores.filter((core) => core.some((cpu) => server.includes(cpu))).flat();
   return {
@@ -179,9 +177,7 @@ export function pinned(
 
 /** Pins every thread of this process to `cpus`; threads created later inherit the mask. */
 export function pinCurrentProcess(cpus: readonly number[]): void {
-  execFileSync("taskset", ["-a", "-p", "-c", formatCpuList(cpus), String(process.pid)], {
-    stdio: "ignore",
-  });
+  run("taskset", ["-a", "-p", "-c", formatCpuList(cpus), String(process.pid)]);
 }
 
 /** Unit of the CPU times in /proc/<pid>/stat on every Linux architecture Node.js runs on. */

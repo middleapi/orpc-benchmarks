@@ -19,14 +19,13 @@ export type LoadTarget =
   | { kind: "http"; request: HttpRequestSpec }
   | { kind: "ws"; message: WsMessageTemplate };
 
-/** How long the requests in flight may take to finish once the measurement ends. */
+/** How long the connections may take to answer their last request and close once the measurement ends. */
 export const DRAIN_TIMEOUT_MS = 2000;
 
 export interface WorkerConfig {
   target: LoadTarget;
   port: number;
   connections: number;
-  /** Substrings every response must contain. */
   expect: string[];
 }
 
@@ -36,11 +35,9 @@ export type WorkerMessage =
       type: "result";
       /** Milliseconds, one per request completed in the measurement window. */
       latencies: number[];
-      /** Requests completed in each second of the window. */
       perSecond: number[];
       elapsedMs: number;
       /** Thread CPU time / wall time (1 = one core). */
       cpuUtilization: number;
-      /** First valid response body. */
       sample: string;
     };

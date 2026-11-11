@@ -22,7 +22,7 @@ import {
   int,
   pct,
   resultsFile,
-  rounds as roundCount,
+  roundCount,
   signedPct,
   writeReadmes,
 } from "./lib/report.ts";
@@ -39,7 +39,6 @@ import type {
 } from "./lib/results.ts";
 import { mean, median, stdev } from "./lib/stats.ts";
 import {
-  type Environment,
   allowedCpus,
   cpuLayout,
   cpuTimes,
@@ -102,6 +101,8 @@ if (options["report-only"]) {
   process.exit(0);
 }
 
+if (process.platform === "win32") throw new Error("Run the benchmarks on Linux, WSL or macOS");
+
 function positiveInt(name: string, value: string): number {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0)
@@ -120,7 +121,6 @@ for (const name of positionals) {
     throw new Error(`Unknown group or benchmark "${name}". Known: ${[...known].join(", ")}`);
 }
 
-// The runner pins itself to the load generator CPUs, so its worker threads inherit them.
 const cpuOption = (name: "server-cpus" | "client-cpus") =>
   options[name] === undefined ? undefined : parseCpuList(options[name]);
 const layout = options.pin
@@ -143,13 +143,13 @@ if (layoutWarning) console.warn(`⚠ ${layoutWarning}`);
 const cpus = layout && {
   server: formatCpuList(layout.server),
   client: formatCpuList(layout.client),
-  ...(layout.idle.length ? { idle: formatCpuList(layout.idle) } : {}),
+  idle: layout.idle.length ? formatCpuList(layout.idle) : undefined,
 };
-console.log(
-  cpus
-    ? `CPU layout: server ${cpus.server}${cpus.idle ? ` (SMT sibling ${cpus.idle} idle)` : ""} · load generator ${cpus.client}`
-    : "CPU layout: not pinned",
-);
+if (cpus) {
+  console.log(
+    `CPU layout: server ${cpus.server}${cpus.idle ? ` (SMT sibling ${cpus.idle} idle)` : ""} · load generator ${cpus.client}`,
+  );
+}
 
 function spread(values: number[]): Spread {
   return {
@@ -177,6 +177,7 @@ async function interleaved<T, R>(
   const results = new Map(items.map((item) => [item, [] as R[]]));
   for (let round = 1; round <= rounds; round++) {
     for (const item of round % 2 ? items : [...items].reverse()) {
+      await sleep(0); // a signal that arrived during a synchronous tsc run is handled here
       results.get(item)!.push(await runOne(item, round));
     }
   }
@@ -208,7 +209,9 @@ function kill(server: RunningServer, signal: NodeJS.Signals): void {
 process.on("exit", () => {
   for (const server of servers) kill(server, "SIGKILL");
 });
-for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, () => process.exit(130));
+for (const signal of ["SIGINT", "SIGTERM", "SIGHUP", "SIGQUIT"] as const) {
+  process.on(signal, () => process.exit(130));
+}
 
 function freePort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -342,8 +345,8 @@ function deriveTemplate(frames: string[]): WsMessageTemplate {
 }
 
 /** Calls the server through the official client and returns what it sent. */
-function capture(group: Group, benchmark: ServerBenchmark, cwd: string, port: number): LoadTarget {
-  const output = run(process.execPath, [benchmark.client!], {
+function capture(group: Group, client: string, cwd: string, port: number): LoadTarget {
+  const output = run(process.execPath, [client], {
     cwd,
     env: { ...process.env, ORIGIN: `http://127.0.0.1:${port}` },
     timeout: 30_000,
@@ -374,11 +377,12 @@ async function prepareServer(group: Group, benchmark: ServerBenchmark): Promise<
   const [node, tsdown] = packageBin(ROOT, "tsdown");
   run(node, [tsdown, "src/main.ts"], { cwd });
 
-  if (!benchmark.request && !benchmark.client)
-    throw new Error(`${benchmark.name} needs a client or a request`);
-  const target: LoadTarget = benchmark.client
-    ? await withServer(cwd, SERVER, async (server) => capture(group, benchmark, cwd, server.port))
-    : { kind: "http", request: { ...benchmark.request!, headers: { ...DEFAULT_HEADERS } } };
+  const target: LoadTarget =
+    "client" in benchmark
+      ? await withServer(cwd, SERVER, async (server) =>
+          capture(group, benchmark.client, cwd, server.port),
+        )
+      : { kind: "http", request: { ...benchmark.request, headers: DEFAULT_HEADERS } };
   return { benchmark, cwd, target };
 }
 
@@ -392,7 +396,6 @@ const loadOptions = (prepared: Prepared, settings: ServerSettings, port: number)
   durationMs: settings.durationSeconds * 1000,
 });
 
-/** Throughput change from the first to the second half of the window. */
 function drift(perSecond: number[]): number | undefined {
   const half = Math.floor(perSecond.length / 2);
   return half ? mean(perSecond.slice(-half)) / mean(perSecond.slice(0, half)) - 1 : undefined;
@@ -501,9 +504,9 @@ function serverWarnings({ name, rounds, summary }: ServerBenchmarkResult): strin
       `${name}: a load generator thread used ${pct(summary.clientCpu)} CPU — try --load-threads 2`,
     );
   }
-  if ((summary.steal ?? 0) > 0.05) {
+  if (summary.steal > 0.05) {
     warnings.push(
-      `${name}: up to ${pct(summary.steal!)} CPU steal — the host is busy, results are noisy`,
+      `${name}: up to ${pct(summary.steal)} CPU steal — the host is busy, results are noisy`,
     );
   }
   return warnings;
@@ -666,8 +669,6 @@ async function runTypecheckGroup(
 // Main
 // ---------------------------------------------------------------------------------------------
 
-let env: Environment | undefined;
-
 for (const group of groups) {
   const all = positionals.length === 0 || positionals.includes(group.id);
   const pick = <T extends { name: string }>(benchmarks: T[]) =>
@@ -681,7 +682,7 @@ for (const group of groups) {
     const settings: TypecheckSettings = {
       rounds,
       tscArgs: TSC_ARGS,
-      ...(cpus ? { cpus: { server: cpus.server, ...(cpus.idle ? { idle: cpus.idle } : {}) } } : {}),
+      cpus: cpus && { server: cpus.server, idle: cpus.idle },
     };
     measured = { settings, ...(await runTypecheckGroup(group, selected, settings)) };
   } else {
@@ -693,7 +694,7 @@ for (const group of groups) {
       durationSeconds: DURATION,
       connections: CONNECTIONS,
       loadThreads: LOAD_THREADS,
-      ...(cpus ? { cpus } : {}),
+      cpus,
     };
     if (options.profile) {
       for (const benchmark of selected) await profileServer(group, benchmark, settings);
@@ -706,7 +707,7 @@ for (const group of groups) {
   const result = {
     group: { id, title, kind, workload },
     date: new Date().toISOString(),
-    environment: (env ??= environment()),
+    environment: environment(),
     ...measured,
   } as GroupResult;
   console.log(consoleSummary(result));

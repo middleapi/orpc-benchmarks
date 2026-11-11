@@ -1,18 +1,20 @@
 import type { HttpRequestSpec } from "./load/types.ts";
 
-export interface ServerBenchmark {
+export type ServerBenchmark = {
   /** Folder under `benchmarks/`. */
   name: string;
   library: string;
   /** Packages whose versions are reported. */
   packages: string[];
-  /** Official-client script (in the benchmark folder) whose wire payload is replayed. */
-  client?: string;
-  /** Fixed request, for benchmarks without a client script. */
-  request?: Omit<HttpRequestSpec, "headers">;
   /** Substrings every response must contain. */
   expect: string[];
-}
+} & (
+  | {
+      /** Official-client script (in the benchmark folder) whose wire payload is replayed. */
+      client: string;
+    }
+  | { request: Omit<HttpRequestSpec, "headers"> }
+);
 
 export interface TypecheckBenchmark {
   name: string;
@@ -72,7 +74,7 @@ export const groups: Group[] = [
     workload:
       '`nested.procedure_1("hello world")` frames exactly as the official client sends them, one in flight per connection',
     rounds: 10,
-    warmupSeconds: 30, // tRPC's WebSocket server still speeds up after 10 s
+    warmupSeconds: 30, // with 10 s, tRPC's WebSocket server still sped up a few percent while measured
     benchmarks: [
       {
         name: "ws-orpc",
@@ -117,7 +119,7 @@ export const groups: Group[] = [
     kind: "typecheck",
     title: "Type-checking",
     workload:
-      "500 routers / 3,000 procedures plus a typed client call for each; every input uses the same Standard Schema interface",
+      "3,000 procedures in 1,501 routers, plus a typed client call for every procedure; every input uses the same Standard Schema interface",
     rounds: 30, // rounds are short and vary by about 10%
     benchmarks: [
       {
