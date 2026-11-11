@@ -21,60 +21,60 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/client@2.0.
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **25,797 req/s** (median; rounds range 22,255 – 30,746, CV 9.5%)       |
-| Latency       | p50 0.34 ms · p90 0.57 ms · p99 0.90 ms · p99.9 2.11 ms · mean 0.39 ms |
-| Server CPU    | 38.2 µs per request (99% of one core used)                             |
-| Server memory | 87 MiB peak RSS (86 MiB average while under load)                      |
+| Throughput    | **24,750 req/s** (median; rounds 22,277 – 28,119, CV 7.4%)             |
+| Latency       | p50 0.38 ms · p90 0.59 ms · p99 0.93 ms · p99.9 2.27 ms · mean 0.40 ms |
+| Server CPU    | 39.7 µs per request (98% of one core)                                  |
+| Server memory | 86 MiB peak RSS (85 MiB average under load)                            |
 
 <details>
 <summary>Per-round results, request and response</summary>
 
-Drift is the throughput change from the first to the second half of the measurement window. A server still warming up shows a positive drift in nearly every round; single rounds vary with machine noise.
+Drift: throughput change from the first to the second half of the measurement window. A server still warming up rises in nearly every round.
 
 | Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
 | ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 25,720 | +17.5% | 0.36 ms | 0.90 ms | 7.23 ms |        99% |   38.4 µs |   85 MiB |  0.6% |          37% |
-|     2 | 23,804 |  +1.0% | 0.40 ms | 0.89 ms | 4.88 ms |        99% |   41.5 µs |   87 MiB |  0.7% |          34% |
-|     3 | 27,300 |  -1.0% | 0.32 ms | 0.84 ms | 7.61 ms |        99% |   36.2 µs |   88 MiB |  1.0% |          40% |
-|     4 | 22,255 |  -8.3% | 0.39 ms | 1.22 ms | 4.11 ms |        99% |   44.7 µs |   86 MiB |  0.2% |          38% |
-|     5 | 25,023 |  -4.9% | 0.37 ms | 0.91 ms | 4.16 ms |        99% |   39.5 µs |   84 MiB |  0.7% |          36% |
-|     6 | 27,581 | -15.8% | 0.31 ms | 0.85 ms | 4.84 ms |        98% |   35.6 µs |   87 MiB |  0.8% |          38% |
-|     7 | 28,270 |  +1.9% | 0.30 ms | 0.83 ms | 10.1 ms |        98% |   34.7 µs |   83 MiB |  1.1% |          37% |
-|     8 | 24,072 |  -9.6% | 0.35 ms | 1.11 ms | 5.13 ms |        99% |   41.1 µs |   88 MiB |  0.8% |          39% |
-|     9 | 25,874 | +16.3% | 0.33 ms | 0.98 ms | 4.72 ms |        98% |   38.1 µs |   87 MiB |  1.1% |          38% |
-|    10 | 30,746 |  -0.5% | 0.28 ms | 0.74 ms | 4.81 ms |        99% |   32.1 µs |   87 MiB |  1.0% |          38% |
+|     1 | 23,508 |  -0.6% | 0.40 ms | 0.95 ms | 5.83 ms |        98% |   41.8 µs |   87 MiB |  1.0% |          36% |
+|     2 | 23,175 |  -6.5% | 0.41 ms | 0.98 ms | 11.0 ms |        99% |   42.8 µs |   86 MiB |  0.3% |          36% |
+|     3 | 23,455 |  -3.7% | 0.40 ms | 0.96 ms | 7.26 ms |        99% |   42.1 µs |   88 MiB |  0.8% |          37% |
+|     4 | 22,277 | +46.5% | 0.41 ms | 1.14 ms | 6.89 ms |        98% |   44.1 µs |   85 MiB |  1.2% |          34% |
+|     5 | 28,119 |  -6.7% | 0.30 ms | 0.83 ms | 12.4 ms |        98% |   34.8 µs |   84 MiB |  1.3% |          39% |
+|     6 | 25,377 |  +2.6% | 0.37 ms | 0.91 ms | 7.86 ms |        98% |   38.7 µs |   86 MiB |  1.2% |          40% |
+|     7 | 25,744 |  -4.7% | 0.33 ms | 0.91 ms | 7.10 ms |        98% |   38.3 µs |   87 MiB |  1.1% |          37% |
+|     8 | 26,008 |  -3.4% | 0.34 ms | 0.89 ms | 11.6 ms |        98% |   37.8 µs |   85 MiB |  1.1% |          37% |
+|     9 | 26,852 | +15.9% | 0.32 ms | 0.88 ms | 6.38 ms |        98% |   36.6 µs |   81 MiB |  0.8% |          42% |
+|    10 | 24,123 |  -4.1% | 0.39 ms | 0.99 ms | 6.75 ms |        98% |   40.8 µs |   85 MiB |  0.8% |          37% |
 
-Request sent by the load generator (plus a `Host` header):
+Request (plus a `host` header):
 
 ```http
 GET /nested/procedure_1?data=%7B%22json%22%3A%22hello+world%22%7D HTTP/1.1
-User-Agent: orpc-benchmarks
-Accept: */*
+user-agent: orpc-benchmarks
+accept: */*
 ```
 
 Response:
 
 ```
-{"json":{"name":"nested/procedure_1","date":"2026-11-11T06:34:35.585Z","input":"hello world"},"meta":[["date","date"]]}
+{"json":{"name":"nested/procedure_1","date":"2026-11-11T10:55:17.324Z","input":"hello world"},"meta":[["date","date"]]}
 ```
 
 </details>
 
-Compared with the rest of the `rpc` group, measured in the same session:
+The whole `rpc` group, measured in the same session:
 
 | Library                 | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :---------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [**oRPC**](../rpc-orpc) | 2.0.0-beta.50 | **25,797** req/s | fastest      |   22,255 – 30,746 |     0.34 ms |     0.90 ms |          38.2 µs |   87 MiB |
-| [tRPC](../rpc-trpc)     | 11.28.0       |  **7,106** req/s | 3.63× slower |     5,880 – 8,772 |     1.13 ms |     4.68 ms |         139.5 µs |  197 MiB |
+| [**oRPC**](../rpc-orpc) | 2.0.0-beta.50 | **24,750 req/s** | fastest      |   22,277 – 28,119 |     0.38 ms |     0.93 ms |          39.7 µs |   86 MiB |
+| [tRPC](../rpc-trpc)     | 11.28.0       |  **6,627 req/s** | 3.73× slower |     4,714 – 7,857 |     1.12 ms |     6.86 ms |         149.9 µs |  205 MiB |
 
-<sub>Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
+<sub>Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
-Clinic.js Doctor profile under the same load, generated with `pnpm bench:profile` ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/rpc-orpc/.clinic/report.clinic-doctor.html)). The profiler slows the server down, so use it to compare behaviour, not throughput:
+Clinic.js Doctor profile from `pnpm bench:profile`, under the same load ([full report](./.clinic/report.clinic-doctor.html), [view in browser](https://htmlpreview.github.io/?https://github.com/middleapi/orpc-benchmarks/blob/main/benchmarks/rpc-orpc/.clinic/report.clinic-doctor.html)); the profiler slows the server, so compare behaviour, not throughput:
 
 - CPU usage: 98% on average (max 102%)
 - Memory (RSS): 79 MiB – 95 MiB
 - Event loop delay: 0.10 ms on average (max 14.2 ms)
-- Detected issues: event loop utilization (performance) — high event loop utilization is expected here, since the load keeps the server saturated
+- Detected issues: event loop utilization (performance; expected: the load keeps the server saturated)
 
 Run on:
 

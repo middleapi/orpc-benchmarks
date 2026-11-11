@@ -70,43 +70,10 @@ Workload: `GET nested.procedure_1("hello world")` exactly as the official client
 
 | Library                       | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :---------------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **25,797** req/s | fastest      |   22,255 – 30,746 |     0.34 ms |     0.90 ms |          38.2 µs |   87 MiB |
-| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **7,106** req/s | 3.63× slower |     5,880 – 8,772 |     1.13 ms |     4.68 ms |         139.5 µs |  197 MiB |
+| [oRPC](./benchmarks/rpc-orpc) | 2.0.0-beta.50 | **24,750 req/s** | fastest      |   22,277 – 28,119 |     0.38 ms |     0.93 ms |          39.7 µs |   86 MiB |
+| [tRPC](./benchmarks/rpc-trpc) | 11.28.0       |  **6,627 req/s** | 3.73× slower |     4,714 – 7,857 |     1.12 ms |     6.86 ms |         149.9 µs |  205 MiB |
 
-<sub>2026-11-11 · Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
-
-### `ws` — RPC over WebSocket
-
-Workload: `nested.procedure_1("hello world")` frames exactly as the official client sends them, one in flight per connection.
-
-| Library                      | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
-| :--------------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/ws-orpc) | 2.0.0-beta.50 | **27,878** req/s | fastest      |   22,626 – 28,986 |     0.29 ms |     0.90 ms |          35.0 µs |  113 MiB |
-| [tRPC](./benchmarks/ws-trpc) | 11.28.0       | **20,974** req/s | 1.33× slower |   19,595 – 22,477 |     0.40 ms |     1.12 ms |          47.0 µs |   82 MiB |
-
-<sub>2026-11-11 · Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 30 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
-
-### `openapi` — OpenAPI (REST) over HTTP
-
-Workload: `GET /nested/procedure_1?who=hello%20world`; the JSON response carries a `Date`.
-
-| Library                           | Version       |       Throughput | Relative             | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
-| :-------------------------------- | :------------ | ---------------: | :------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/openapi-orpc) | 2.0.0-beta.50 | **23,874** req/s | fastest              |   21,934 – 27,009 |     0.40 ms |     0.92 ms |          41.2 µs |   87 MiB |
-| [Hono](./benchmarks/openapi-hono) | 4.13.17       | **23,780** req/s | 1.00× (within noise) |   21,736 – 25,906 |     0.39 ms |     0.98 ms |          41.5 µs |   91 MiB |
-
-<sub>2026-11-11 · Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
-
-### `typecheck` — Type-checking
-
-Workload: `tsc --noEmit` on 500 routers / 3,000 procedures plus a typed client call for each, every input declared with the same Standard Schema interface.
-
-| Library                             | Version       |  Check time | Relative                    | Range (min – max) | Total time |   Types | Instantiations | Memory used |
-| :---------------------------------- | :------------ | ----------: | :-------------------------- | ----------------: | ---------: | ------: | -------------: | ----------: |
-| [oRPC](./benchmarks/typecheck-orpc) | 2.0.0-beta.50 | **2.125 s** | fastest                     | 1.799 s – 2.737 s |    2.391 s | 247,841 |      1,040,001 |     268 MiB |
-| [tRPC](./benchmarks/typecheck-trpc) | 11.28.0       | **2.288 s** | 1.08× slower (within noise) | 1.826 s – 2.986 s |    2.502 s | 227,281 |      1,086,257 |     227 MiB |
-
-<sub>2026-11-11 · TypeScript 7.0.2, `tsc --singleThreaded` · median of 30 rounds (run order alternated); `tsc` pinned to CPU 3.</sub>
+<sub>2026-11-11 · Median of 10 rounds (fresh server each, order alternated) · 10 connections · 10 s warm-up + 10 s measured · server on CPU 3, load generator on CPUs 1-2.</sub>
 
 Run on:
 
