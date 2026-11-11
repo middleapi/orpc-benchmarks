@@ -149,13 +149,11 @@ function describeRun(result: GroupResult): string {
 }
 
 /** Everything the runner flagged for this group (CPU layout, saturation, warm-up, noise). */
-function groupWarnings(result: GroupResult, only?: string): string[] {
+function groupWarnings(result: GroupResult): string[] {
   const benchmarks = result.benchmarks as (ServerBenchmarkResult | TypecheckBenchmarkResult)[];
   return [
     ...(result.settings.warnings ?? []),
-    ...benchmarks
-      .filter((b) => only === undefined || b.name === only)
-      .flatMap((b) => ("warnings" in b ? (b.warnings ?? []) : [])),
+    ...benchmarks.flatMap((b) => ("warnings" in b ? (b.warnings ?? []) : [])),
   ];
 }
 
@@ -477,7 +475,7 @@ function benchmarkSection(root: string, result: GroupResult, name: string): stri
     groupTable(result, name),
     "",
     `<sub>${describeRun(result)}</sub>`,
-    ...warningLines(groupWarnings(result, name)),
+    ...warningLines(groupWarnings(result)),
     ...(clinic ? ["", clinic] : []),
     "",
     "Run on:",

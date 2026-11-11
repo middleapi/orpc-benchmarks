@@ -131,7 +131,7 @@ const LOAD_THREADS = positiveInt("load-threads", options["load-threads"]);
 
 function resolveLayout(): CpuLayout {
   const layout = defaultCpuLayout();
-  if (!options.pin) return { ...layout, pinned: false };
+  if (!options.pin) return { ...layout, idle: [], pinned: false };
   if (!canPinCpus && (options["server-cpus"] || options["client-cpus"])) {
     throw new Error("CPU pinning needs Linux with `taskset` (util-linux) installed");
   }
