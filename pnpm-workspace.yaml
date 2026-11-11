@@ -6,7 +6,9 @@ allowBuilds:
   esbuild: false
 
 minimumReleaseAgeExclude:
+  - "@hono/node-server@2.1.7"
   - "@trpc/client@11.28.0"
   - "@trpc/server@11.28.0"
+  - "hono@4.13.18"
 
 shamefullyHoist: true
