@@ -317,7 +317,7 @@ function serverDetails(benchmark: ServerBenchmarkResult): string {
     "<details>",
     "<summary>Per-round results, request and response</summary>",
     "",
-    "Drift is the throughput change from the first to the second half of the measurement window; a clearly positive value means the server was still warming up.",
+    "Drift is the throughput change from the first to the second half of the measurement window. A server still warming up shows a positive drift in nearly every round; single rounds vary with machine noise.",
     "",
     rounds,
     "",

@@ -626,11 +626,15 @@ function warnings(name: string, rounds: ServerRound[]): string[] {
   const serverCpu = medianOf(rounds, (r) => r.serverCpu);
   const clientCpu = Math.max(...rounds.map((r) => r.clientCpu));
   const steal = Math.max(...rounds.map((r) => r.steal ?? 0));
-  const medianDrift = medianOf(rounds, (r) => r.drift);
+  const drifts = rounds.map((r) => r.drift).filter((d): d is number => d !== undefined);
+  const rising = drifts.filter((d) => d > 0).length;
 
-  if (medianDrift !== undefined && medianDrift > 0.03) {
+  // A server still warming up gets faster in (nearly) every round. On a noisy host a single
+  // round's drift easily reaches ±10%, so a high median alone is not enough: at least 3 rounds in
+  // 4 must have risen (with 10 rounds, noise alone gets there about 5% of the time).
+  if (drifts.length && median(drifts) > 0.03 && rising >= 0.75 * drifts.length) {
     result.push(
-      `${name}: throughput was still rising during the measurement (+${(medianDrift * 100).toFixed(1)}% from the first to the second half, median) — try a longer --warmup`,
+      `${name}: throughput was still rising during the measurement in ${rising} of ${drifts.length} rounds (+${(median(drifts) * 100).toFixed(1)}% from the first to the second half, median) — try a longer --warmup`,
     );
   }
 

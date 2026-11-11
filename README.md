@@ -94,10 +94,12 @@ Workload: `GET /nested/procedure_1?who=hello%20world`; the JSON response carries
 
 | Library                           | Version       |       Throughput | Relative                    | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :-------------------------------- | :------------ | ---------------: | :-------------------------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/openapi-orpc) | 2.0.0-beta.50 | **28,311** req/s | fastest                     |   20,948 – 32,252 |     0.30 ms |     0.83 ms |          34.8 µs |   95 MiB |
-| [Hono](./benchmarks/openapi-hono) | 4.13.17       | **27,192** req/s | 1.04× slower (within noise) |   25,688 – 29,560 |     0.31 ms |     0.87 ms |          36.2 µs |  100 MiB |
+| [oRPC](./benchmarks/openapi-orpc) | 2.0.0-beta.50 | **26,205** req/s | fastest                     |   24,028 – 28,456 |     0.36 ms |     0.87 ms |          37.7 µs |   86 MiB |
+| [Hono](./benchmarks/openapi-hono) | 4.13.17       | **24,747** req/s | 1.06× slower (within noise) |   22,208 – 27,061 |     0.37 ms |     0.92 ms |          39.9 µs |   93 MiB |
 
 <sub>2026-11-11 · Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 10 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
+
+> ⚠ openapi-hono: throughput was still rising during the measurement (+3.6% from the first to the second half, median) — try a longer --warmup
 
 ### `typecheck` — Type-checking
 
