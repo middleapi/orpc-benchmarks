@@ -83,8 +83,8 @@ Workload: `nested.procedure_1("hello world")` frames exactly as the official cli
 
 | Library                      | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :--------------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [oRPC](./benchmarks/ws-orpc) | 2.0.0-beta.50 | **30,681** req/s | fastest      |   28,716 – 31,771 |     0.27 ms |     0.82 ms |          32.0 µs |  122 MiB |
-| [tRPC](./benchmarks/ws-trpc) | 11.28.0       | **23,598** req/s | 1.30× slower |   22,520 – 24,734 |     0.36 ms |     1.00 ms |          41.8 µs |   91 MiB |
+| [oRPC](./benchmarks/ws-orpc) | 2.0.0-beta.50 | **27,878** req/s | fastest      |   22,626 – 28,986 |     0.29 ms |     0.90 ms |          35.0 µs |  113 MiB |
+| [tRPC](./benchmarks/ws-trpc) | 11.28.0       | **20,974** req/s | 1.33× slower |   19,595 – 22,477 |     0.40 ms |     1.12 ms |          47.0 µs |   82 MiB |
 
 <sub>2026-11-11 · Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 30 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
 

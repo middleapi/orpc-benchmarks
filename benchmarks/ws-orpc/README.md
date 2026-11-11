@@ -22,28 +22,28 @@ oRPC 2.0.0-beta.50 — 2026-11-11 (@orpc/server@2.0.0-beta.50, @orpc/client@2.0.
 
 | Metric        | Result                                                                 |
 | :------------ | :--------------------------------------------------------------------- |
-| Throughput    | **30,681 req/s** (median; rounds range 28,716 – 31,771, CV 3.0%)       |
-| Latency       | p50 0.27 ms · p90 0.51 ms · p99 0.82 ms · p99.9 3.15 ms · mean 0.33 ms |
-| Server CPU    | 32.0 µs per request (98% of one core used)                             |
-| Server memory | 122 MiB peak RSS (121 MiB average while under load)                    |
+| Throughput    | **27,878 req/s** (median; rounds range 22,626 – 28,986, CV 7.6%)       |
+| Latency       | p50 0.29 ms · p90 0.54 ms · p99 0.90 ms · p99.9 3.32 ms · mean 0.36 ms |
+| Server CPU    | 35.0 µs per request (98% of one core used)                             |
+| Server memory | 113 MiB peak RSS (109 MiB average while under load)                    |
 
 <details>
 <summary>Per-round results, request and response</summary>
 
 Drift is the throughput change from the first to the second half of the measurement window; a clearly positive value means the server was still warming up.
 
-| Round |  Req/s |  Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
-| ----: | -----: | -----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
-|     1 | 30,742 |  +1.3% | 0.28 ms | 0.81 ms | 14.1 ms |        98% |   32.0 µs |  121 MiB |  0.9% |          43% |
-|     2 | 30,536 |  +5.6% | 0.27 ms | 0.84 ms | 24.0 ms |        98% |   32.1 µs |  124 MiB |  1.0% |          44% |
-|     3 | 30,620 |  -5.6% | 0.27 ms | 0.83 ms | 10.2 ms |        98% |   32.1 µs |  119 MiB |  1.0% |          44% |
-|     4 | 31,064 |  -5.2% | 0.27 ms | 0.81 ms | 21.5 ms |        98% |   31.5 µs |  123 MiB |  0.8% |          44% |
-|     5 | 28,716 | +13.9% | 0.28 ms | 1.11 ms | 41.8 ms |        97% |   33.8 µs |  123 MiB |  0.7% |          42% |
-|     6 | 31,771 |  -5.9% | 0.27 ms | 0.75 ms | 9.55 ms |        99% |   31.0 µs |  122 MiB |  0.8% |          43% |
-|     7 | 31,771 |  -3.6% | 0.27 ms | 0.77 ms | 9.79 ms |        99% |   31.2 µs |  121 MiB |  0.3% |          45% |
-|     8 | 31,402 |  -4.5% | 0.27 ms | 0.74 ms | 36.8 ms |        98% |   31.3 µs |  123 MiB |  1.1% |          43% |
-|     9 | 30,366 |  -4.6% | 0.27 ms | 0.84 ms | 17.2 ms |        98% |   32.1 µs |  124 MiB |  1.3% |          42% |
-|    10 | 30,013 |  +3.2% | 0.28 ms | 0.86 ms | 15.6 ms |        98% |   32.6 µs |  118 MiB |  1.2% |          45% |
+| Round |  Req/s | Drift |     p50 |     p99 |     Max | Server CPU | CPU / req | Peak RSS | Steal | Load gen CPU |
+| ----: | -----: | ----: | ------: | ------: | ------: | ---------: | --------: | -------: | ----: | -----------: |
+|     1 | 28,640 | -4.5% | 0.29 ms | 0.87 ms | 13.3 ms |        98% |   34.1 µs |  113 MiB |  1.2% |          44% |
+|     2 | 28,986 | -1.5% | 0.29 ms | 0.90 ms | 21.1 ms |        97% |   33.6 µs |  113 MiB |  1.4% |          44% |
+|     3 | 27,776 | -2.0% | 0.29 ms | 1.01 ms | 14.0 ms |        97% |   34.8 µs |  110 MiB |  1.8% |          44% |
+|     4 | 27,699 | +3.6% | 0.30 ms | 0.91 ms | 12.6 ms |        98% |   35.3 µs |  112 MiB |  1.3% |          44% |
+|     5 | 22,626 | -1.9% | 0.37 ms | 1.39 ms | 19.0 ms |        98% |   43.3 µs |  110 MiB |  1.1% |          46% |
+|     6 | 28,449 | -3.7% | 0.29 ms | 0.90 ms | 14.9 ms |        98% |   34.3 µs |  111 MiB |  1.2% |          45% |
+|     7 | 27,365 | -5.5% | 0.30 ms | 0.92 ms | 29.1 ms |        98% |   35.7 µs |  115 MiB |  1.2% |          45% |
+|     8 | 27,980 | +6.8% | 0.30 ms | 0.87 ms | 14.6 ms |        98% |   35.2 µs |  114 MiB |  0.6% |          45% |
+|     9 | 28,963 | -1.8% | 0.29 ms | 0.85 ms | 13.6 ms |        98% |   33.8 µs |  116 MiB |  1.3% |          43% |
+|    10 | 24,584 | -5.2% | 0.37 ms | 0.96 ms | 14.4 ms |        98% |   39.9 µs |  112 MiB |  1.1% |          43% |
 
 Frame sent by the load generator (the id is incremented for every request on a connection):
 
@@ -54,7 +54,7 @@ Frame sent by the load generator (the id is incremented for every request on a c
 Response:
 
 ```
-{"id":"1","kind":"response","json":{"body":{"json":{"name":"nested/procedure_1","date":"2026-11-11T03:33:03.348Z","input":"hello world"},"meta":[["date","date"]]}}}
+{"id":"1","kind":"response","json":{"body":{"json":{"name":"nested/procedure_1","date":"2026-11-11T06:41:21.745Z","input":"hello world"},"meta":[["date","date"]]}}}
 ```
 
 </details>
@@ -63,8 +63,8 @@ Compared with the rest of the `ws` group, measured in the same session:
 
 | Library                | Version       |       Throughput | Relative     | Range (min – max) | Latency p50 | Latency p99 | Server CPU / req | Peak RSS |
 | :--------------------- | :------------ | ---------------: | :----------- | ----------------: | ----------: | ----------: | ---------------: | -------: |
-| [**oRPC**](../ws-orpc) | 2.0.0-beta.50 | **30,681** req/s | fastest      |   28,716 – 31,771 |     0.27 ms |     0.82 ms |          32.0 µs |  122 MiB |
-| [tRPC](../ws-trpc)     | 11.28.0       | **23,598** req/s | 1.30× slower |   22,520 – 24,734 |     0.36 ms |     1.00 ms |          41.8 µs |   91 MiB |
+| [**oRPC**](../ws-orpc) | 2.0.0-beta.50 | **27,878** req/s | fastest      |   22,626 – 28,986 |     0.29 ms |     0.90 ms |          35.0 µs |  113 MiB |
+| [tRPC](../ws-trpc)     | 11.28.0       | **20,974** req/s | 1.33× slower |   19,595 – 22,477 |     0.40 ms |     1.12 ms |          47.0 µs |   82 MiB |
 
 <sub>Median of 10 rounds, each with a fresh server process (run order alternated); 10 connections, 30 s warm-up + 10 s measurement per round; server pinned to CPU 3, load generator to CPUs 1-2.</sub>
 
@@ -78,7 +78,7 @@ Clinic.js Doctor profile under the same load, generated with `pnpm bench:profile
 Run on:
 
 ```
-CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 cores, KVM VM)
+CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 CPUs, no SMT, KVM VM)
 Memory: 16086 MB
 OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
 Node: v26.13.0 (V8 14.6.202.34-node.40)
