@@ -4,6 +4,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "bench": "tsx scripts/gen.ts && tsc --noEmit --incremental false --extendedDiagnostics"
+    "bench": "node ../../scripts/bench.ts typecheck-trpc",
+    "typecheck": "node scripts/gen.ts && tsc --singleThreaded --extendedDiagnostics"
   }
 }

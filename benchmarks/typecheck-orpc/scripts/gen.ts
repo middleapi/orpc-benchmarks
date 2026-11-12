@@ -1,12 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const NUM_ROUTERS = 500;
-const ROUTER_DIR = path.resolve(__dirname, "../src/router");
-const CONSUME_DIR = path.resolve(__dirname, "../src/consume");
+const ROUTER_DIR = path.resolve(import.meta.dirname, "../src/router");
+const CONSUME_DIR = path.resolve(import.meta.dirname, "../src/consume");
 
 const PROCEDURE_1 = `base.input({} as Schema<{ who: string }, { who: string }>).handler(({input}) => \`hello \${input.who}\`)`;
 const PROCEDURE_2 = `base.input({} as Schema<{ id: string }, { id: string }>).handler(({input}) => ({ id: input.id }))`;
@@ -47,10 +44,12 @@ const routerNames = Array.from({ length: NUM_ROUTERS }, (_, i) => `router_${i}`)
 await fs.mkdir(ROUTER_DIR, { recursive: true });
 await fs.mkdir(CONSUME_DIR, { recursive: true });
 
-routerNames.forEach(async (routerName) => {
-  await fs.writeFile(path.join(ROUTER_DIR, `${routerName}.ts`), createRouter(routerName));
-  await fs.writeFile(path.join(CONSUME_DIR, `${routerName}.ts`), createConsume(routerName));
-});
+await Promise.all(
+  routerNames.flatMap((routerName) => [
+    fs.writeFile(path.join(ROUTER_DIR, `${routerName}.ts`), createRouter(routerName)),
+    fs.writeFile(path.join(CONSUME_DIR, `${routerName}.ts`), createConsume(routerName)),
+  ]),
+);
 
 const routerIndex = `
 ${routerNames.map((routerName) => `import { ${routerName} } from './${routerName}';`).join("\n")}

@@ -5,6 +5,8 @@
   "type": "module",
   "main": "dist/main.mjs",
   "scripts": {
-    "bench": "tsdown src/main.ts && clinic doctor --stop-delay 5000 --dest .clinic --name report --autocannon [ -d 20 'http://127.0.0.1:$PORT/nested/procedure_1?who=hello%20world' ] -- node dist/main.mjs"
+    "bench": "node ../../scripts/bench.ts openapi-orpc",
+    "bench:profile": "node ../../scripts/bench.ts openapi-orpc --profile",
+    "start": "tsdown src/main.ts && node dist/main.mjs"
   }
 }

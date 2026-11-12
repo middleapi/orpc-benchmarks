@@ -1,6 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    // Scripts run directly with Node.js type stripping.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
   "include": [
     "playground",
     "scripts",
@@ -16,6 +21,11 @@
     "*/*/playground",
     "*/*/scripts",
     "*/*/tests",
-    "*/*/*"
+    "*/*/*",
+
+    // The servers under test (not the generated typecheck-* projects, which have their own config).
+    "benchmarks/rpc-*/src",
+    "benchmarks/ws-*/src",
+    "benchmarks/openapi-*/src"
   ]
 }
