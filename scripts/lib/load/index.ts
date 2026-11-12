@@ -33,7 +33,7 @@ type Report = Extract<WorkerMessage, { type: "result" }>;
 
 const WORKER_URL = new URL("./worker.ts", import.meta.url);
 
-/** Runs the closed-loop load; rejects on an invalid response, a connection error or an unanswered request. */
+/** Runs the closed-loop load; rejects on an invalid response, a connection error, an unanswered request or an empty measurement. */
 export async function runLoad(options: LoadOptions): Promise<LoadResult> {
   const threads = Math.max(1, Math.min(options.threads, options.connections));
   const workers = Array.from(
@@ -87,6 +87,7 @@ export async function runLoad(options: LoadOptions): Promise<LoadResult> {
     const results = await within(Promise.race([reports, timeout]));
 
     const latencies = results.flatMap((result) => result.latencies);
+    if (latencies.length === 0) throw new Error("No request completed during the measurement");
     const seconds = Math.min(...results.map((result) => result.perSecond.length));
     return {
       requests: latencies.length,
