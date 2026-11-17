@@ -42,7 +42,7 @@ The runner ([scripts/bench.ts](./scripts/bench.ts)):
 
 ## Latest results
 
-Produced with `pnpm bench` and `pnpm bench:profile` (default settings) on a 4-vCPU cloud VM, with every other process, the unbound kernel workqueues and movable IRQs moved to CPU 0. Over a day of repeated runs on this VM (2026-11-11), a benchmark's median throughput varied by up to 1.6× at about 1% steal, and the `rpc` ratio ranged from 3.6× to 4.4×: only compare results from the same run.
+Produced with `pnpm bench` and `pnpm bench:profile` (default settings) on a 4-vCPU cloud VM, with every other process, the unbound kernel workqueues and movable IRQs moved to CPU 0. Over a day of repeated runs on a VM of this type (2026-11-11), a benchmark's median throughput varied by up to 1.6× at about 1% steal, and the `rpc` ratio ranged from 3.6× to 4.4×: only compare results from the same run.
 
 <details>
 <summary>CPU isolation commands (optional, Linux; all but the last line as root)</summary>
