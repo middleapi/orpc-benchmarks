@@ -6,9 +6,12 @@ allowBuilds:
   esbuild: false
 
 minimumReleaseAgeExclude:
-  - "@hono/node-server@2.1.7"
-  - "@trpc/client@11.28.0"
-  - "@trpc/server@11.28.0"
-  - "hono@4.13.18"
+  - "@hono/node-server@2.1.9"
+  - "@orpc/client@2.0.0-beta.51"
+  - "@orpc/contract@2.0.0-beta.51"
+  - "@orpc/json-schema@2.0.0-beta.51"
+  - "@orpc/openapi@2.0.0-beta.51"
+  - "@orpc/server@2.0.0-beta.51"
+  - "@orpc/shared@2.0.0-beta.51"
 
 shamefullyHoist: true
