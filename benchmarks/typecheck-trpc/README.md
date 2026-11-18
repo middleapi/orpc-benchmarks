@@ -17,12 +17,12 @@ Committed results come from `pnpm bench typecheck` at the repository root, which
 
 <!-- result:start -->
 
-tRPC 11.28.0 — 2026-11-11 (@trpc/server@11.28.0, @trpc/client@11.28.0, typescript@7.0.2)
+tRPC 11.28.3 — 2026-11-17 (@trpc/server@11.28.3, @trpc/client@11.28.3, typescript@7.0.2)
 
 | Metric                 | Result                                         |
 | :--------------------- | :--------------------------------------------- |
-| Check time             | **2.499 s** (median; rounds 1.873 s – 3.040 s) |
-| Total time             | 2.722 s (process wall time 3.406 s)            |
+| Check time             | **1.969 s** (median; rounds 1.571 s – 2.448 s) |
+| Total time             | 2.127 s (process wall time 2.772 s)            |
 | Types / instantiations | 223,766 / 1,043,234                            |
 | Memory used            | 224 MiB                                        |
 
@@ -31,36 +31,36 @@ tRPC 11.28.0 — 2026-11-11 (@trpc/server@11.28.0, @trpc/client@11.28.0, typescr
 
 | Round | Check time | Total time | Wall time |
 | ----: | ---------: | ---------: | --------: |
-|     1 |    2.425 s |    2.677 s |   3.535 s |
-|     2 |    2.268 s |    2.453 s |   3.043 s |
-|     3 |    1.873 s |    2.055 s |   2.831 s |
-|     4 |    2.468 s |    2.635 s |   3.259 s |
-|     5 |    2.559 s |    2.793 s |   3.497 s |
-|     6 |    2.640 s |    2.882 s |   3.643 s |
-|     7 |    2.487 s |    2.691 s |   3.430 s |
-|     8 |    2.219 s |    2.413 s |   2.988 s |
-|     9 |    2.072 s |    2.328 s |   2.981 s |
-|    10 |    2.511 s |    2.733 s |   3.291 s |
-|    11 |    2.844 s |    3.114 s |   3.750 s |
-|    12 |    2.141 s |    2.328 s |   3.026 s |
-|    13 |    2.289 s |    2.527 s |   3.088 s |
-|    14 |    2.152 s |    2.409 s |   2.935 s |
-|    15 |    2.485 s |    2.711 s |   3.382 s |
-|    16 |    2.312 s |    2.537 s |   3.274 s |
-|    17 |    2.444 s |    2.621 s |   3.373 s |
-|    18 |    2.385 s |    2.642 s |   3.207 s |
-|    19 |    2.801 s |    3.046 s |   3.743 s |
-|    20 |    2.913 s |    3.168 s |   3.903 s |
-|    21 |    2.599 s |    2.829 s |   3.585 s |
-|    22 |    2.712 s |    2.898 s |   3.565 s |
-|    23 |    2.696 s |    2.967 s |   3.683 s |
-|    24 |    2.760 s |    3.019 s |   3.738 s |
-|    25 |    2.632 s |    2.872 s |   3.604 s |
-|    26 |    2.533 s |    2.819 s |   3.581 s |
-|    27 |    3.040 s |    3.275 s |   3.875 s |
-|    28 |    2.340 s |    2.552 s |   3.341 s |
-|    29 |    2.535 s |    2.771 s |   3.356 s |
-|    30 |    2.556 s |    2.748 s |   3.517 s |
+|     1 |    1.957 s |    2.107 s |   2.705 s |
+|     2 |    2.042 s |    2.210 s |   2.897 s |
+|     3 |    2.130 s |    2.298 s |   3.030 s |
+|     4 |    2.127 s |    2.323 s |   2.976 s |
+|     5 |    2.065 s |    2.211 s |   2.772 s |
+|     6 |    1.908 s |    2.043 s |   2.622 s |
+|     7 |    2.211 s |    2.387 s |   3.049 s |
+|     8 |    1.796 s |    1.986 s |   2.852 s |
+|     9 |    1.862 s |    2.060 s |   3.022 s |
+|    10 |    1.855 s |    2.048 s |   2.604 s |
+|    11 |    1.571 s |    1.714 s |   2.652 s |
+|    12 |    1.981 s |    2.211 s |   2.771 s |
+|    13 |    1.905 s |    2.079 s |   2.616 s |
+|    14 |    1.684 s |    1.872 s |   2.704 s |
+|    15 |    1.768 s |    1.926 s |   2.501 s |
+|    16 |    1.994 s |    2.147 s |   2.685 s |
+|    17 |    1.845 s |    2.032 s |   2.807 s |
+|    18 |    2.182 s |    2.344 s |   2.908 s |
+|    19 |    1.943 s |    2.094 s |   2.750 s |
+|    20 |    2.045 s |    2.232 s |   2.898 s |
+|    21 |    2.198 s |    2.345 s |   3.022 s |
+|    22 |    2.448 s |    2.645 s |   3.341 s |
+|    23 |    2.079 s |    2.252 s |   2.923 s |
+|    24 |    2.134 s |    2.315 s |   2.947 s |
+|    25 |    1.818 s |    2.003 s |   2.575 s |
+|    26 |    2.099 s |    2.312 s |   2.936 s |
+|    27 |    1.870 s |    2.033 s |   2.620 s |
+|    28 |    1.980 s |    2.167 s |   2.701 s |
+|    29 |    1.771 s |    1.939 s |   2.488 s |
+|    30 |    1.745 s |    1.921 s |   2.741 s |
 
 Median of each `--extendedDiagnostics` value:
 
@@ -71,14 +71,14 @@ Identifiers:          81,089
 Symbols:             342,404
 Types:               223,766
 Instantiations:    1,043,234
-Memory used:        229,295K
-Memory allocs:     2,539,138
-Config time:          0.004s
-Parse time:           0.166s
-Bind time:            0.057s
-Check time:           2.499s
-Emit time:            0.005s
-Total time:           2.722s
+Memory used:        229,273K
+Memory allocs:     2,539,119
+Config time:          0.003s
+Parse time:           0.123s
+Bind time:            0.044s
+Check time:           1.969s
+Emit time:            0.003s
+Total time:           2.127s
 ```
 
 </details>
@@ -87,8 +87,8 @@ The whole `typecheck` group, measured in the same session:
 
 | Library                       | Version       |  Check time | Relative                    | Range (min – max) | Total time |   Types | Instantiations | Memory used |
 | :---------------------------- | :------------ | ----------: | :-------------------------- | ----------------: | ---------: | ------: | -------------: | ----------: |
-| [oRPC](../typecheck-orpc)     | 2.0.0-beta.50 | **2.322 s** | fastest                     | 1.825 s – 3.011 s |    2.616 s | 247,841 |      1,040,001 |     268 MiB |
-| [**tRPC**](../typecheck-trpc) | 11.28.0       | **2.499 s** | 1.08× slower (within noise) | 1.873 s – 3.040 s |    2.722 s | 223,766 |      1,043,234 |     224 MiB |
+| [oRPC](../typecheck-orpc)     | 2.0.0-beta.51 | **1.591 s** | fastest                     | 1.347 s – 2.127 s |    1.809 s | 204,344 |        775,928 |     241 MiB |
+| [**tRPC**](../typecheck-trpc) | 11.28.3       | **1.969 s** | 1.24× slower (within noise) | 1.571 s – 2.448 s |    2.127 s | 223,766 |      1,043,234 |     224 MiB |
 
 <sub>TypeScript 7.0.2, `tsc --singleThreaded` on CPU 3 · median of 30 rounds (order alternated).</sub>
 
@@ -96,10 +96,10 @@ Run on:
 
 ```
 CPU: Intel(R) Xeon(R) Processor @ 2.10GHz (4 CPUs, no SMT, KVM VM)
-Memory: 16086 MiB
-OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v378 x64)
-Node: v26.13.0 (V8 14.6.202.34-node.40)
-pnpm: 12.18.0
+Memory: 16088 MiB
+OS: Ubuntu 24.04.5 LTS (Linux 6.18.44-fc-v553 x64)
+Node: v26.13.1 (V8 14.6.202.34-node.40)
+pnpm: 12.21.0
 ```
 
 <!-- result:end -->
